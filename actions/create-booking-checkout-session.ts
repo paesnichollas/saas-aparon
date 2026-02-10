@@ -21,7 +21,7 @@ export const createBookingCheckoutSession = protectedActionClient
       });
     }
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-07-30.basil",
+      apiVersion: "2026-01-28.clover",
     });
     const service = await prisma.barbershopService.findUnique({
       where: {
