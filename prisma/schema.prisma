@@ -20,8 +20,12 @@ model Barbershop {
   description String
   imageUrl    String
   phones      String[]
+  ownerId     String?
+  owner       User?               @relation("BarbershopOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   services    BarbershopService[]
   bookings    Booking[]
+
+  @@index([ownerId])
 }
 
 model BarbershopService {
@@ -51,17 +55,25 @@ model Booking {
   updatedAt      DateTime          @updatedAt @db.Timestamptz()
 }
 
+enum UserRole {
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  bookings      Booking[]
+  id              String       @id
+  name            String
+  email           String
+  emailVerified   Boolean      @default(false)
+  image           String?
+  role            UserRole     @default(CUSTOMER)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  sessions        Session[]
+  accounts        Account[]
+  bookings        Booking[]
+  ownedBarbershops Barbershop[] @relation("BarbershopOwner")
 
   @@unique([email])
   @@map("user")

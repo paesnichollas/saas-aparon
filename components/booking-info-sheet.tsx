@@ -20,7 +20,7 @@ import { getBookingStatus } from "@/lib/booking-status";
 import BookingSummary from "./booking-summary";
 import CopyButton from "@/app/barbershops/[id]/_components/copy-button";
 import { Avatar, AvatarImage } from "./ui/avatar";
-import { Smartphone, X, Loader2 } from "lucide-react";
+import { Smartphone, Loader2 } from "lucide-react";
 import { cancelBooking } from "@/actions/cancel-booking";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";

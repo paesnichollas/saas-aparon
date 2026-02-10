@@ -1,5 +1,18 @@
 // Data Access Layer
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma/client";
+
+export type AdminBarbershopWithRelations = Prisma.BarbershopGetPayload<{
+  include: {
+    services: true;
+    bookings: {
+      include: {
+        service: true;
+        user: true;
+      };
+    };
+  };
+}>;
 
 export const getBarbershops = async () => {
   const barbershops = await prisma.barbershop.findMany();
@@ -37,4 +50,32 @@ export const getBarbershopsByServiceName = async (serviceName: string) => {
     },
   });
   return barbershops;
+};
+
+export const getAdminBarbershopByUserId = async (userId: string) => {
+  const barbershop = await prisma.barbershop.findFirst({
+    where: {
+      ownerId: userId,
+    },
+    include: {
+      services: {
+        where: {
+          deletedAt: null,
+        },
+        orderBy: {
+          name: "asc",
+        },
+      },
+      bookings: {
+        include: {
+          service: true,
+          user: true,
+        },
+        orderBy: {
+          date: "desc",
+        },
+      },
+    },
+  });
+  return barbershop;
 };

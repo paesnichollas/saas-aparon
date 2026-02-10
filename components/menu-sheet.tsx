@@ -11,11 +11,16 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { MenuIcon, Home, CalendarDays, LogOut, LogIn } from "lucide-react";
+import {
+  MenuIcon,
+  Home,
+  CalendarDays,
+  LogOut,
+  LogIn,
+  ShieldCheck,
+} from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-
-const isLoggedIn = false;
 
 const categories = [
   { label: "Cabelo", search: "cabelo" },
@@ -107,6 +112,20 @@ const MenuSheet = () => {
                 Agendamentos
               </Link>
             </SheetClose>
+            {isLoggedIn && (
+              <SheetClose asChild>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="h-auto justify-start rounded-none px-5 py-3 text-sm font-medium"
+                >
+                  <Link href="/admin">
+                    <ShieldCheck className="size-4" />
+                    Painel administrativo
+                  </Link>
+                </Button>
+              </SheetClose>
+            )}
           </div>
 
           <div className="border-border border-b" />
