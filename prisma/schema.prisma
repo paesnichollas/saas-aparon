@@ -21,6 +21,7 @@ model Barbershop {
   imageUrl               String
   phones                 String[]
   bookingIntervalMinutes Int                     @default(30)
+  stripeEnabled          Boolean                 @default(true)
   ownerId                String?
   owner                  User?                   @relation("BarbershopOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   services               BarbershopService[]
@@ -59,6 +60,7 @@ model BarbershopOpeningHours {
 model Booking {
   id             String            @id @default(uuid())
   stripeChargeId String?
+  paymentMethod  PaymentMethod     @default(IN_PERSON)
   barbershopId   String
   barbershop     Barbershop        @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
   serviceId      String
@@ -69,6 +71,11 @@ model Booking {
   cancelledAt    DateTime?         @db.Timestamptz()
   createdAt      DateTime          @default(now()) @db.Timestamptz()
   updatedAt      DateTime          @updatedAt @db.Timestamptz()
+}
+
+enum PaymentMethod {
+  STRIPE
+  IN_PERSON
 }
 
 enum UserRole {

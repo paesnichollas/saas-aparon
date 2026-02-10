@@ -81,6 +81,7 @@ export const createBooking = protectedActionClient
         date: date.toISOString(),
         userId: user.id,
         barbershopId: service.barbershopId,
+        paymentMethod: "IN_PERSON",
       },
     });
 

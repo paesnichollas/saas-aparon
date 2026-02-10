@@ -72,11 +72,18 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
         "Erro ao criar agendamento. Por favor, tente novamente.",
       );
     }
-    const checkoutSession = result.data;
-    if (!checkoutSession) {
+    const checkoutResult = result.data;
+    if (!checkoutResult) {
       return toast.error(
         "Erro ao criar agendamento. Por favor, tente novamente.",
       );
+    }
+    if (checkoutResult.kind === "created") {
+      toast.success("Reserva confirmada com sucesso.");
+      setSheetIsOpen(false);
+      setSelectedDate(undefined);
+      setSelectedTime(undefined);
+      return;
     }
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       return toast.error(
@@ -91,8 +98,9 @@ const ServiceItem = ({ service, barbershop }: ServiceItemProps) => {
         "Erro ao criar agendamento. Por favor, tente novamente.",
       );
     }
+    toast.info("Redirecionando para o pagamento no Stripe.");
     await stripe.redirectToCheckout({
-      sessionId: checkoutSession.id,
+      sessionId: checkoutResult.sessionId,
     });
     setSheetIsOpen(false);
     setSelectedDate(undefined);

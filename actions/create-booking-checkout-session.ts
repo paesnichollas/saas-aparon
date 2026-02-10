@@ -16,29 +16,31 @@ const inputSchema = z.object({
 export const createBookingCheckoutSession = protectedActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput: { serviceId, date }, ctx: { user } }) => {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      returnValidationErrors(inputSchema, {
-        _errors: ["Chave de API do Stripe não encontrada."],
-      });
-    }
-
     if (isPast(date)) {
       returnValidationErrors(inputSchema, {
         _errors: ["Data e hora selecionadas já passaram."],
       });
     }
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2026-01-28.clover",
-    });
-
     const service = await prisma.barbershopService.findFirst({
       where: {
         id: serviceId,
         deletedAt: null,
       },
-      include: {
-        barbershop: true,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        priceInCents: true,
+        durationInMinutes: true,
+        barbershopId: true,
+        barbershop: {
+          select: {
+            name: true,
+            stripeEnabled: true,
+          },
+        },
       },
     });
 
@@ -85,6 +87,36 @@ export const createBookingCheckoutSession = protectedActionClient
       });
     }
 
+    if (!service.barbershop.stripeEnabled) {
+      const booking = await prisma.booking.create({
+        data: {
+          serviceId: service.id,
+          barbershopId: service.barbershopId,
+          userId: user.id,
+          date: date.toISOString(),
+          paymentMethod: "IN_PERSON",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      return {
+        kind: "created" as const,
+        bookingId: booking.id,
+      };
+    }
+
+    if (!process.env.STRIPE_SECRET_KEY) {
+      returnValidationErrors(inputSchema, {
+        _errors: ["Chave de API do Stripe não encontrada."],
+      });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2026-01-28.clover",
+    });
+
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
@@ -112,5 +144,8 @@ export const createBookingCheckoutSession = protectedActionClient
       ],
     });
 
-    return checkoutSession;
+    return {
+      kind: "stripe" as const,
+      sessionId: checkoutSession.id,
+    };
   });

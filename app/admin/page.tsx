@@ -1,5 +1,6 @@
 import Footer from "@/components/footer";
 import Header from "@/components/header";
+import PaymentSettingsForm from "@/components/admin/payment-settings-form";
 import ScheduleSettingsForm from "@/components/admin/schedule-settings-form";
 import ServicesDurationForm from "@/components/admin/services-duration-form";
 import { Badge } from "@/components/ui/badge";
@@ -190,6 +191,10 @@ const AdminPage = async () => {
 
         <PageSectionContent>
           <PageSectionTitle>Configurações de agenda</PageSectionTitle>
+          <PaymentSettingsForm
+            barbershopId={barbershop.id}
+            stripeEnabled={barbershop.stripeEnabled}
+          />
           <ScheduleSettingsForm
             barbershopId={barbershop.id}
             bookingIntervalMinutes={barbershop.bookingIntervalMinutes}

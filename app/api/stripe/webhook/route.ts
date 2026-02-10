@@ -39,7 +39,11 @@ export const POST = async (request: Request) => {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
-    const metadata = metadataSchema.parse(session.metadata);
+    const parsedMetadata = metadataSchema.safeParse(session.metadata);
+    if (!parsedMetadata.success) {
+      return NextResponse.json({ received: true });
+    }
+    const metadata = parsedMetadata.data;
     const bookingDate = new Date(metadata.date);
     const expandedSession = await stripe.checkout.sessions.retrieve(session.id, {
       expand: ["payment_intent"],
@@ -65,6 +69,24 @@ export const POST = async (request: Request) => {
       }
     }
 
+    const barbershop = await prisma.barbershop.findUnique({
+      where: {
+        id: metadata.barbershopId,
+      },
+      select: {
+        id: true,
+        stripeEnabled: true,
+      },
+    });
+
+    if (!barbershop) {
+      return NextResponse.json({ received: true });
+    }
+
+    if (!barbershop.stripeEnabled && !chargeId) {
+      return NextResponse.json({ received: true });
+    }
+
     const service = await prisma.barbershopService.findUnique({
       where: {
         id: metadata.serviceId,
@@ -73,10 +95,15 @@ export const POST = async (request: Request) => {
         id: true,
         barbershopId: true,
         durationInMinutes: true,
+        deletedAt: true,
       },
     });
 
-    if (!service || service.barbershopId !== metadata.barbershopId) {
+    if (
+      !service ||
+      service.deletedAt ||
+      service.barbershopId !== metadata.barbershopId
+    ) {
       return NextResponse.json({ received: true });
     }
 
@@ -119,6 +146,7 @@ export const POST = async (request: Request) => {
           userId: metadata.userId,
           date: metadata.date,
           stripeChargeId: chargeId,
+          paymentMethod: "STRIPE",
         },
       });
     }
