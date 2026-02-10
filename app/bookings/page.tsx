@@ -8,8 +8,20 @@ import {
   PageSectionTitle,
 } from "@/components/ui/page";
 
-const BookingsPage = async () => {
-  const { confirmedBookings, finishedBookings } = await getUserBookings();
+interface BookingsPageProps {
+  searchParams: Promise<{
+    session_id?: string | string[];
+  }>;
+}
+
+const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
+  const resolvedSearchParams = await searchParams;
+  const stripeSessionId = Array.isArray(resolvedSearchParams.session_id)
+    ? resolvedSearchParams.session_id[0]
+    : resolvedSearchParams.session_id;
+  const { confirmedBookings, finishedBookings } = await getUserBookings({
+    stripeSessionId,
+  });
 
   return (
     <div>

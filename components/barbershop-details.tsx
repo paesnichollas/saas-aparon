@@ -1,17 +1,19 @@
-import { Barbershop, BarbershopService } from "@/generated/prisma/client";
+import { Barber, Barbershop, BarbershopService } from "@/generated/prisma/client";
 import { Smartphone } from "lucide-react";
 import Image from "next/image";
 import BackButton from "@/app/barbershops/[id]/_components/back-button";
 import CopyButton from "@/app/barbershops/[id]/_components/copy-button";
+import BookingSheet from "@/components/booking-sheet";
 import ServiceItem from "@/components/service-item";
 import { PageSectionTitle } from "@/components/ui/page";
 
-type BarbershopWithServices = Barbershop & {
+type BarbershopWithRelations = Barbershop & {
+  barbers: Barber[];
   services: BarbershopService[];
 };
 
 interface BarbershopDetailsProps {
-  barbershop: BarbershopWithServices;
+  barbershop: BarbershopWithRelations;
   showBackButton?: boolean;
 }
 
@@ -52,7 +54,7 @@ const BarbershopDetails = ({
         </div>
 
         <div className="flex flex-col gap-3 px-5">
-          <PageSectionTitle>Sobre Nós</PageSectionTitle>
+          <PageSectionTitle>Sobre Nos</PageSectionTitle>
           <p className="text-sm">{barbershop.description}</p>
         </div>
 
@@ -61,13 +63,32 @@ const BarbershopDetails = ({
         </div>
 
         <div className="flex flex-col gap-3 px-5">
-          <PageSectionTitle>Serviços</PageSectionTitle>
+          <PageSectionTitle>Reserva</PageSectionTitle>
+          {barbershop.barbers.length > 0 ? (
+            <BookingSheet
+              barbershop={barbershop}
+              barbers={barbershop.barbers}
+              services={barbershop.services}
+            />
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Nenhum barbeiro cadastrado para esta barbearia.
+            </p>
+          )}
+        </div>
+
+        <div className="py-6">
+          <div className="bg-border h-px w-full" />
+        </div>
+
+        <div className="flex flex-col gap-3 px-5">
+          <PageSectionTitle>Servicos</PageSectionTitle>
           <div className="flex flex-col gap-3">
             {barbershop.services.map((service) => (
               <ServiceItem
                 key={service.id}
                 service={service}
-                barbershop={barbershop}
+                fallbackImageUrl={barbershop.imageUrl}
               />
             ))}
           </div>
@@ -80,10 +101,7 @@ const BarbershopDetails = ({
         <div className="flex flex-col gap-3 px-5">
           <PageSectionTitle>Contato</PageSectionTitle>
           {barbershop.phones.map((phone, index) => (
-            <div
-              key={`${phone}-${index}`}
-              className="flex items-center justify-between"
-            >
+            <div key={`${phone}-${index}`} className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Smartphone className="size-6" />
                 <p className="text-sm">{phone}</p>

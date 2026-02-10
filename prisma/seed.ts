@@ -117,6 +117,7 @@ async function seedDatabase() {
           "https://utfs.io/f/8a457cda-f768-411d-a737-cdb23ca6b9b5-b3pegf.png",
       },
     ];
+    const barberNames = ["Caio", "Rafael", "Lucas"];
 
     // Criar 10 barbearias com nomes e endereços fictícios
     const barbershops = [];
@@ -141,6 +142,13 @@ async function seedDatabase() {
       await prisma.barbershopOpeningHours.createMany({
         data: openingHoursData.map((openingHour) => ({
           ...openingHour,
+          barbershopId: barbershop.id,
+        })),
+      });
+
+      await prisma.barber.createMany({
+        data: barberNames.map((barberName) => ({
+          name: barberName,
           barbershopId: barbershop.id,
         })),
       });

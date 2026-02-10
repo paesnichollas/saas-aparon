@@ -2,33 +2,43 @@
 
 import { actionClient } from "@/lib/action-client";
 import {
-  hasMinuteIntervalOverlap,
-  toMinuteOfDay,
-  toTimeSlotLabel,
-} from "@/lib/booking-interval";
+  getBookingDurationMinutes,
+  getBookingStartDate,
+} from "@/lib/booking-calculations";
+import { toMinuteOfDay, toTimeSlotLabel } from "@/lib/booking-interval";
+import { ACTIVE_BOOKING_PAYMENT_WHERE } from "@/lib/booking-payment";
 import { prisma } from "@/lib/prisma";
 import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { z } from "zod";
 
 const DEFAULT_OPEN_MINUTE = 9 * 60;
-const DEFAULT_CLOSE_MINUTE = 18 * 60;
+const DEFAULT_CLOSE_MINUTE = 17 * 60;
 
 const inputSchema = z.object({
   barbershopId: z.uuid(),
-  serviceId: z.uuid(),
+  barberId: z.uuid().optional(),
+  serviceId: z.uuid().optional(),
+  serviceIds: z.array(z.uuid()).min(1).optional(),
   date: z.date(),
 });
 
 export const getDateAvailableTimeSlots = actionClient
   .inputSchema(inputSchema)
-  .action(async ({ parsedInput: { barbershopId, serviceId, date } }) => {
-    const [barbershop, service, bookings] = await Promise.all([
+  .action(async ({ parsedInput: { barbershopId, barberId, serviceId, serviceIds, date } }) => {
+    const uniqueServiceIds = Array.from(
+      new Set(serviceIds ?? (serviceId ? [serviceId] : [])),
+    );
+
+    if (uniqueServiceIds.length === 0) {
+      return [];
+    }
+
+    const [barbershop, barber, services] = await Promise.all([
       prisma.barbershop.findUnique({
         where: {
           id: barbershopId,
         },
         select: {
-          bookingIntervalMinutes: true,
           openingHours: {
             where: {
               dayOfWeek: date.getDay(),
@@ -37,9 +47,26 @@ export const getDateAvailableTimeSlots = actionClient
           },
         },
       }),
-      prisma.barbershopService.findFirst({
+      barberId
+        ? prisma.barber.findFirst({
+            where: {
+              barbershopId,
+              id: barberId,
+            },
+          })
+        : prisma.barber.findFirst({
+            where: {
+              barbershopId,
+            },
+            orderBy: {
+              name: "asc",
+            },
+          }),
+      prisma.barbershopService.findMany({
         where: {
-          id: serviceId,
+          id: {
+            in: uniqueServiceIds,
+          },
           barbershopId,
           deletedAt: null,
         },
@@ -47,29 +74,41 @@ export const getDateAvailableTimeSlots = actionClient
           durationInMinutes: true,
         },
       }),
-      prisma.booking.findMany({
-        where: {
-          barbershopId,
-          date: {
-            gte: startOfDay(date),
-            lte: endOfDay(date),
-          },
-          cancelledAt: null,
-        },
-        select: {
-          date: true,
-          service: {
-            select: {
-              durationInMinutes: true,
-            },
-          },
-        },
-      }),
     ]);
 
-    if (!barbershop || !service) {
+    if (!barbershop || !barber || services.length !== uniqueServiceIds.length) {
       return [];
     }
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        barbershopId,
+        AND: [
+          {
+            OR: [{ barberId: barber.id }, { barberId: null }],
+          },
+          ACTIVE_BOOKING_PAYMENT_WHERE,
+        ],
+        date: {
+          gte: startOfDay(date),
+          lte: endOfDay(date),
+        },
+        cancelledAt: null,
+      },
+      orderBy: {
+        date: "asc",
+      },
+      select: {
+        startAt: true,
+        totalDurationMinutes: true,
+        date: true,
+        service: {
+          select: {
+            durationInMinutes: true,
+          },
+        },
+      },
+    });
 
     const openingHour = barbershop.openingHours[0];
     const closed = openingHour?.closed ?? false;
@@ -80,35 +119,35 @@ export const getDateAvailableTimeSlots = actionClient
       return [];
     }
 
-    const bookingIntervalMinutes = barbershop.bookingIntervalMinutes;
-    const serviceDurationInMinutes = service.durationInMinutes;
+    const totalDurationInMinutes = services.reduce((accumulator, service) => {
+      return accumulator + service.durationInMinutes;
+    }, 0);
 
-    if (bookingIntervalMinutes <= 0 || serviceDurationInMinutes <= 0) {
+    if (totalDurationInMinutes <= 0) {
       return [];
     }
 
     const occupiedIntervals = bookings.map((booking) => {
-      const startMinute = toMinuteOfDay(booking.date);
+      const startMinute = toMinuteOfDay(getBookingStartDate(booking));
+      const durationInMinutes = getBookingDurationMinutes(booking);
       return {
         startMinute,
-        endMinute: startMinute + booking.service.durationInMinutes,
+        endMinute: startMinute + durationInMinutes,
       };
     });
 
     const now = new Date();
     const isToday = isSameDay(date, now);
     const availableTimeSlots: string[] = [];
-    const lastAvailableStartMinute = closeMinute - serviceDurationInMinutes;
+    const lastAvailableStartMinute = closeMinute - totalDurationInMinutes;
 
     if (lastAvailableStartMinute < openMinute) {
       return [];
     }
 
-    for (
-      let slotStartMinute = openMinute;
-      slotStartMinute <= lastAvailableStartMinute;
-      slotStartMinute += bookingIntervalMinutes
-    ) {
+    let slotStartMinute = openMinute;
+
+    while (slotStartMinute <= lastAvailableStartMinute) {
       if (isToday) {
         const slotDate = new Date(date);
         slotDate.setHours(
@@ -118,20 +157,27 @@ export const getDateAvailableTimeSlots = actionClient
           0,
         );
         if (slotDate <= now) {
+          slotStartMinute += totalDurationInMinutes;
           continue;
         }
       }
 
-      const hasCollision = hasMinuteIntervalOverlap(
-        slotStartMinute,
-        serviceDurationInMinutes,
-        occupiedIntervals,
-      );
+      const slotEndMinute = slotStartMinute + totalDurationInMinutes;
+      const conflictInterval = occupiedIntervals.find((interval) => {
+        return (
+          slotStartMinute < interval.endMinute &&
+          slotEndMinute > interval.startMinute
+        );
+      });
 
-      if (!hasCollision) {
-        availableTimeSlots.push(toTimeSlotLabel(slotStartMinute));
+      if (conflictInterval) {
+        slotStartMinute = Math.max(slotStartMinute + 1, conflictInterval.endMinute);
+        continue;
       }
+
+      availableTimeSlots.push(toTimeSlotLabel(slotStartMinute));
+      slotStartMinute += totalDurationInMinutes;
     }
 
-    return availableTimeSlots;
+    return Array.from(new Set(availableTimeSlots));
   });

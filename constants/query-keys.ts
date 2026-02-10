@@ -1,12 +1,14 @@
 export const queryKeys = {
   getDateAvailableTimeSlots: (
     barbershopId: string,
-    serviceId: string,
+    barberId: string | undefined,
+    serviceIds: string[],
     date?: Date,
   ) => [
     "date-available-time-slots",
     barbershopId,
-    serviceId,
+    barberId,
+    serviceIds.join(","),
     date?.toISOString(),
   ],
 };

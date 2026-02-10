@@ -16,6 +16,10 @@ import {
   AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { BookingWithRelations } from "@/data/bookings";
+import {
+  getBookingDurationMinutes,
+  getBookingStartDate,
+} from "@/lib/booking-calculations";
 import { getBookingStatus } from "@/lib/booking-status";
 import BookingSummary from "./booking-summary";
 import CopyButton from "@/app/barbershops/[id]/_components/copy-button";
@@ -31,9 +35,30 @@ interface BookingInfoSheetProps {
 }
 
 const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
-  const status = getBookingStatus(booking.date, booking.cancelledAt);
+  const bookingStartAt = getBookingStartDate(booking);
+  const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
   const { executeAsync: executeCancelBooking, isPending: isCancelling } =
     useAction(cancelBooking);
+  const bookingServices =
+    booking.services.length > 0
+      ? booking.services.map((bookingService) => ({
+          id: bookingService.service.id,
+          name: bookingService.service.name,
+          priceInCents: bookingService.service.priceInCents,
+        }))
+      : [
+          {
+            id: booking.service.id,
+            name: booking.service.name,
+            priceInCents: booking.service.priceInCents,
+          },
+        ];
+  const totalPriceInCents =
+    booking.totalPriceInCents ??
+    bookingServices.reduce((accumulator, service) => {
+      return accumulator + service.priceInCents;
+    }, 0);
+  const totalDurationMinutes = getBookingDurationMinutes(booking);
 
   const handleCancelBooking = async () => {
     const result = await executeCancelBooking({ bookingId: booking.id });
@@ -88,10 +113,12 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
           )}
 
           <BookingSummary
-            serviceName={booking.service.name}
-            servicePrice={booking.service.priceInCents}
+            services={bookingServices}
             barbershopName={booking.barbershop.name}
-            date={booking.date}
+            barberName={booking.barber?.name}
+            date={bookingStartAt}
+            totalDurationMinutes={totalDurationMinutes}
+            totalPriceInCents={totalPriceInCents}
           />
         </div>
 

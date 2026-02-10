@@ -4,21 +4,29 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useGetDateAvailableTimeSlots = ({
   barbershopId,
-  serviceId,
+  barberId,
+  serviceIds,
   date,
 }: {
   barbershopId: string;
-  serviceId: string;
+  barberId?: string;
+  serviceIds: string[];
   date?: Date;
 }) => {
   return useQuery({
-    queryKey: queryKeys.getDateAvailableTimeSlots(barbershopId, serviceId, date),
+    queryKey: queryKeys.getDateAvailableTimeSlots(
+      barbershopId,
+      barberId,
+      serviceIds,
+      date,
+    ),
     queryFn: () =>
       getDateAvailableTimeSlots({
         barbershopId,
-        serviceId,
+        barberId: barberId!,
+        serviceIds,
         date: date!,
       }),
-    enabled: Boolean(date && serviceId),
+    enabled: Boolean(date && barberId && serviceIds.length > 0),
   });
 };

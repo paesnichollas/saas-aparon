@@ -1,13 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
+import { CONFIRMED_BOOKING_PAYMENT_WHERE } from "@/lib/booking-payment";
+import { reconcilePendingBookingsForBarbershop } from "@/lib/stripe-booking-reconciliation";
 
 export type AdminBarbershopWithRelations = Prisma.BarbershopGetPayload<{
   include: {
     services: true;
+    barbers: true;
     openingHours: true;
     bookings: {
       include: {
+        barber: true;
         service: true;
+        services: {
+          include: {
+            service: true;
+          };
+        };
         user: true;
       };
     };
@@ -39,6 +48,11 @@ export const getBarbershopById = async (id: string) => {
   const barbershop = await prisma.barbershop.findUnique({
     where: { id },
     include: {
+      barbers: {
+        orderBy: {
+          name: "asc",
+        },
+      },
       services: {
         where: {
           deletedAt: null,
@@ -53,6 +67,11 @@ export const getBarbershopBySlug = async (slug: string) => {
   const barbershop = await prisma.barbershop.findUnique({
     where: { slug },
     include: {
+      barbers: {
+        orderBy: {
+          name: "asc",
+        },
+      },
       services: {
         where: {
           deletedAt: null,
@@ -82,11 +101,42 @@ export const getBarbershopsByServiceName = async (serviceName: string) => {
 };
 
 export const getAdminBarbershopByUserId = async (userId: string) => {
-  const barbershop = await prisma.barbershop.findFirst({
+  const ownedBarbershop = await prisma.barbershop.findFirst({
     where: {
       ownerId: userId,
     },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!ownedBarbershop) {
+    return null;
+  }
+
+  try {
+    await reconcilePendingBookingsForBarbershop(ownedBarbershop.id);
+  } catch (error) {
+    console.error(
+      "[getAdminBarbershopByUserId] Failed to reconcile pending bookings for barbershop.",
+      {
+        error,
+        userId,
+        barbershopId: ownedBarbershop.id,
+      },
+    );
+  }
+
+  const barbershop = await prisma.barbershop.findUnique({
+    where: {
+      id: ownedBarbershop.id,
+    },
     include: {
+      barbers: {
+        orderBy: {
+          name: "asc",
+        },
+      },
       services: {
         where: {
           deletedAt: null,
@@ -101,8 +151,24 @@ export const getAdminBarbershopByUserId = async (userId: string) => {
         },
       },
       bookings: {
+        where: {
+          OR: [
+            CONFIRMED_BOOKING_PAYMENT_WHERE,
+            {
+              cancelledAt: {
+                not: null,
+              },
+            },
+          ],
+        },
         include: {
+          barber: true,
           service: true,
+          services: {
+            include: {
+              service: true,
+            },
+          },
           user: true,
         },
         orderBy: {

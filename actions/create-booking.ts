@@ -1,7 +1,12 @@
 "use server";
 
 import { protectedActionClient } from "@/lib/action-client";
+import {
+  getBookingDurationMinutes,
+  getBookingStartDate,
+} from "@/lib/booking-calculations";
 import { hasMinuteIntervalOverlap, toMinuteOfDay } from "@/lib/booking-interval";
+import { ACTIVE_BOOKING_PAYMENT_WHERE } from "@/lib/booking-payment";
 import { prisma } from "@/lib/prisma";
 import { endOfDay, isPast, startOfDay } from "date-fns";
 import { returnValidationErrors } from "next-safe-action";
@@ -76,9 +81,27 @@ export const createBooking = protectedActionClient
       });
     }
 
+    const defaultBarber = await prisma.barber.findFirst({
+      where: {
+        barbershopId: service.barbershopId,
+      },
+      orderBy: {
+        name: "asc",
+      },
+      select: {
+        id: true,
+      },
+    });
+
     const bookings = await prisma.booking.findMany({
       where: {
         barbershopId: service.barbershopId,
+        AND: [
+          {
+            OR: [{ barberId: defaultBarber?.id ?? null }, { barberId: null }],
+          },
+          ACTIVE_BOOKING_PAYMENT_WHERE,
+        ],
         date: {
           gte: startOfDay(date),
           lte: endOfDay(date),
@@ -86,6 +109,8 @@ export const createBooking = protectedActionClient
         cancelledAt: null,
       },
       select: {
+        startAt: true,
+        totalDurationMinutes: true,
         date: true,
         service: {
           select: {
@@ -99,10 +124,11 @@ export const createBooking = protectedActionClient
       toMinuteOfDay(date),
       service.durationInMinutes,
       bookings.map((booking) => {
-        const startMinute = toMinuteOfDay(booking.date);
+        const startMinute = toMinuteOfDay(getBookingStartDate(booking));
+        const durationInMinutes = getBookingDurationMinutes(booking);
         return {
           startMinute,
-          endMinute: startMinute + booking.service.durationInMinutes,
+          endMinute: startMinute + durationInMinutes,
         };
       }),
     );
@@ -117,9 +143,22 @@ export const createBooking = protectedActionClient
       data: {
         serviceId,
         date: date.toISOString(),
+        startAt: date.toISOString(),
+        endAt: new Date(
+          date.getTime() + service.durationInMinutes * 60_000,
+        ).toISOString(),
+        totalDurationMinutes: service.durationInMinutes,
+        totalPriceInCents: service.priceInCents,
         userId: user.id,
+        barberId: defaultBarber?.id ?? null,
         barbershopId: service.barbershopId,
         paymentMethod: "IN_PERSON",
+        paymentStatus: "PAID",
+        services: {
+          create: {
+            serviceId,
+          },
+        },
       },
     });
 

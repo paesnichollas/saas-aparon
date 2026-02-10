@@ -1,4 +1,5 @@
 import BrandingSettingsForm from "@/components/admin/branding-settings-form";
+import BarbersManagementCard from "@/components/admin/barbers-management-card";
 import ServicesManagementCard from "@/components/admin/services-management-card";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/page";
 import { getAdminBarbershopByUserId } from "@/data/barbershops";
 import { getServicesByBarbershopId } from "@/data/services";
+import { getBookingStartDate } from "@/lib/booking-calculations";
 import { getBookingStatus } from "@/lib/booking-status";
 import { auth } from "@/lib/auth";
 import { format } from "date-fns";
@@ -103,14 +105,20 @@ const AdminPage = async () => {
 
   const now = new Date();
   const futureBookings = barbershop.bookings
-    .filter((booking) => booking.date >= now)
+    .filter((booking) => getBookingStartDate(booking) >= now)
     .sort((firstBooking, secondBooking) => {
-      return firstBooking.date.getTime() - secondBooking.date.getTime();
+      return (
+        getBookingStartDate(firstBooking).getTime() -
+        getBookingStartDate(secondBooking).getTime()
+      );
     });
   const pastBookings = barbershop.bookings
-    .filter((booking) => booking.date < now)
+    .filter((booking) => getBookingStartDate(booking) < now)
     .sort((firstBooking, secondBooking) => {
-      return secondBooking.date.getTime() - firstBooking.date.getTime();
+      return (
+        getBookingStartDate(secondBooking).getTime() -
+        getBookingStartDate(firstBooking).getTime()
+      );
     });
 
   return (
@@ -147,6 +155,18 @@ const AdminPage = async () => {
               </div>
             </CardContent>
           </Card>
+        </PageSectionContent>
+
+        <PageSectionContent>
+          <PageSectionTitle>Barbeiros</PageSectionTitle>
+          <BarbersManagementCard
+            barbershopId={barbershop.id}
+            barbers={barbershop.barbers.map((barber) => ({
+              id: barber.id,
+              name: barber.name,
+              imageUrl: barber.imageUrl,
+            }))}
+          />
         </PageSectionContent>
 
         <PageSectionContent>
@@ -193,7 +213,18 @@ const AdminPage = async () => {
           {futureBookings.length > 0 ? (
             <div className="space-y-3">
               {futureBookings.map((booking) => {
-                const status = getBookingStatus(booking.date, booking.cancelledAt);
+                const bookingStartAt = getBookingStartDate(booking);
+                const status = getBookingStatus(
+                  bookingStartAt,
+                  booking.cancelledAt,
+                );
+                const serviceNames =
+                  booking.services.length > 0
+                    ? booking.services.map((bookingService) => {
+                        return bookingService.service.name;
+                      })
+                    : [booking.service.name];
+
                 return (
                   <Card key={booking.id}>
                     <CardContent className="space-y-3">
@@ -206,7 +237,7 @@ const AdminPage = async () => {
                         </Badge>
                         <Badge variant="secondary" className="gap-1">
                           <CalendarDays className="size-3" />
-                          {format(booking.date, "dd/MM/yyyy HH:mm", {
+                          {format(bookingStartAt, "dd/MM/yyyy HH:mm", {
                             locale: ptBR,
                           })}
                         </Badge>
@@ -214,7 +245,10 @@ const AdminPage = async () => {
                       <div className="space-y-1">
                         <p className="flex items-center gap-2 text-sm font-medium">
                           <Scissors className="size-4" />
-                          {booking.service.name}
+                          {serviceNames.join(" + ")}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          Barbeiro: {booking.barber?.name ?? "Nao informado"}
                         </p>
                         <p className="text-muted-foreground flex items-center gap-2 text-sm">
                           <UserRound className="size-4" />
@@ -242,7 +276,18 @@ const AdminPage = async () => {
           {pastBookings.length > 0 ? (
             <div className="space-y-3">
               {pastBookings.map((booking) => {
-                const status = getBookingStatus(booking.date, booking.cancelledAt);
+                const bookingStartAt = getBookingStartDate(booking);
+                const status = getBookingStatus(
+                  bookingStartAt,
+                  booking.cancelledAt,
+                );
+                const serviceNames =
+                  booking.services.length > 0
+                    ? booking.services.map((bookingService) => {
+                        return bookingService.service.name;
+                      })
+                    : [booking.service.name];
+
                 return (
                   <Card key={booking.id}>
                     <CardContent className="space-y-3">
@@ -255,7 +300,7 @@ const AdminPage = async () => {
                         </Badge>
                         <Badge variant="secondary" className="gap-1">
                           <CalendarDays className="size-3" />
-                          {format(booking.date, "dd/MM/yyyy HH:mm", {
+                          {format(bookingStartAt, "dd/MM/yyyy HH:mm", {
                             locale: ptBR,
                           })}
                         </Badge>
@@ -263,7 +308,10 @@ const AdminPage = async () => {
                       <div className="space-y-1">
                         <p className="flex items-center gap-2 text-sm font-medium">
                           <Scissors className="size-4" />
-                          {booking.service.name}
+                          {serviceNames.join(" + ")}
+                        </p>
+                        <p className="text-muted-foreground text-sm">
+                          Barbeiro: {booking.barber?.name ?? "Nao informado"}
                         </p>
                         <p className="text-muted-foreground flex items-center gap-2 text-sm">
                           <UserRound className="size-4" />

@@ -27,6 +27,7 @@ model Barbershop {
   stripeEnabled          Boolean                 @default(true)
   ownerId                String?
   owner                  User?                   @relation("BarbershopOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  barbers                Barber[]
   services               BarbershopService[]
   bookings               Booking[]
   openingHours           BarbershopOpeningHours[]
@@ -44,7 +45,21 @@ model BarbershopService {
   barbershopId      String
   barbershop        Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
   bookings          Booking[]
+  bookingServices   BookingService[]
   deletedAt         DateTime?
+}
+
+model Barber {
+  id           String     @id @default(uuid())
+  name         String
+  imageUrl     String?
+  barbershopId String
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  bookings     Booking[]
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+  updatedAt    DateTime   @updatedAt @db.Timestamptz()
+
+  @@index([barbershopId])
 }
 
 model BarbershopOpeningHours {
@@ -62,23 +77,52 @@ model BarbershopOpeningHours {
 
 model Booking {
   id             String            @id @default(uuid())
+  stripeSessionId String?          @unique
   stripeChargeId String?
   paymentMethod  PaymentMethod     @default(IN_PERSON)
+  paymentStatus  PaymentStatus     @default(PENDING)
   barbershopId   String
   barbershop     Barbershop        @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  barberId       String?
+  barber         Barber?           @relation(fields: [barberId], references: [id], onDelete: SetNull)
   serviceId      String
   service        BarbershopService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  services       BookingService[]
   userId         String
   user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalDurationMinutes Int?
+  totalPriceInCents   Int?
+  startAt        DateTime?         @db.Timestamptz()
+  endAt          DateTime?         @db.Timestamptz()
+  paymentConfirmedAt DateTime?     @db.Timestamptz()
   date           DateTime          @db.Timestamptz()
   cancelledAt    DateTime?         @db.Timestamptz()
   createdAt      DateTime          @default(now()) @db.Timestamptz()
   updatedAt      DateTime          @updatedAt @db.Timestamptz()
+
+  @@index([barberId])
+  @@index([startAt])
+}
+
+model BookingService {
+  bookingId String
+  serviceId String
+  booking   Booking          @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  service   BarbershopService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([bookingId, serviceId])
+  @@index([serviceId])
 }
 
 enum PaymentMethod {
   STRIPE
   IN_PERSON
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
 }
 
 enum UserRole {
