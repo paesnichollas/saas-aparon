@@ -362,8 +362,6 @@ const BarbersManagementCard = ({
               <TableHeader>
                 <TableRow>
                   <TableHead>Barbeiro</TableHead>
-                  <TableHead>Foto</TableHead>
-                  <TableHead className="text-right">Acoes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

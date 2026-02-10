@@ -197,8 +197,12 @@ const AdminPage = async () => {
           <PageSectionTitle>Configurações</PageSectionTitle>
           <BrandingSettingsForm
             barbershopId={barbershop.id}
+            name={barbershop.name}
+            description={barbershop.description}
+            address={barbershop.address}
+            phones={barbershop.phones}
+            imageUrl={barbershop.imageUrl}
             slug={barbershop.slug}
-            logoUrl={barbershop.logoUrl}
             showInDirectory={barbershop.showInDirectory}
           />
           <PaymentSettingsForm

@@ -10,16 +10,42 @@ const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const inputSchema = z.object({
   barbershopId: z.uuid(),
+  name: z.string().trim().min(2).max(80),
+  description: z.string().trim().min(10).max(1000),
+  address: z.string().trim().min(5).max(160),
+  phones: z.array(z.string().trim().min(8).max(30)).min(1).max(6),
+  imageUrl: z.string().trim().max(500),
   slug: z.string().trim().min(3).max(60).regex(slugRegex),
-  logoUrl: z.string().trim().max(500),
   showInDirectory: z.boolean(),
 });
+
+const hasValidImageUrl = (value: string) => {
+  if (value.startsWith("/")) {
+    return true;
+  }
+
+  try {
+    const parsedUrl = new URL(value);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
 
 export const updateBarbershopBranding = protectedActionClient
   .inputSchema(inputSchema)
   .action(
     async ({
-      parsedInput: { barbershopId, slug, logoUrl, showInDirectory },
+      parsedInput: {
+        barbershopId,
+        name,
+        description,
+        address,
+        phones,
+        imageUrl,
+        slug,
+        showInDirectory,
+      },
       ctx: { user },
     }) => {
       const barbershop = await prisma.barbershop.findFirst({
@@ -35,7 +61,7 @@ export const updateBarbershopBranding = protectedActionClient
 
       if (!barbershop) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia não encontrada ou sem permissão de edição."],
+          _errors: ["Barbearia nao encontrada ou sem permissao de edicao."],
         });
       }
 
@@ -53,31 +79,23 @@ export const updateBarbershopBranding = protectedActionClient
 
       if (existingBarbershopWithSlug) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Slug já está em uso por outra barbearia."],
+          _errors: ["Slug ja esta em uso por outra barbearia."],
         });
       }
 
-      const normalizedLogoUrl = logoUrl.trim();
+      const normalizedImageUrl = imageUrl.trim();
+      const normalizedPhones = phones.map((phone) => phone.trim()).filter(Boolean);
 
-      if (normalizedLogoUrl.length > 0) {
-        let parsedLogoUrl: URL;
+      if (normalizedPhones.length === 0) {
+        returnValidationErrors(inputSchema, {
+          _errors: ["Informe pelo menos um telefone de contato."],
+        });
+      }
 
-        try {
-          parsedLogoUrl = new URL(normalizedLogoUrl);
-        } catch {
-          returnValidationErrors(inputSchema, {
-            _errors: ["Informe uma URL de logo válida."],
-          });
-        }
-
-        if (
-          parsedLogoUrl.protocol !== "https:" &&
-          parsedLogoUrl.protocol !== "http:"
-        ) {
-          returnValidationErrors(inputSchema, {
-            _errors: ["A URL da logo deve iniciar com http:// ou https://."],
-          });
-        }
+      if (normalizedImageUrl.length === 0 || !hasValidImageUrl(normalizedImageUrl)) {
+        returnValidationErrors(inputSchema, {
+          _errors: ["A imagem de fundo enviada e invalida."],
+        });
       }
 
       const updatedBarbershop = await prisma.barbershop.update({
@@ -85,13 +103,21 @@ export const updateBarbershopBranding = protectedActionClient
           id: barbershopId,
         },
         data: {
+          name,
+          description,
+          address,
+          phones: normalizedPhones,
+          imageUrl: normalizedImageUrl,
           slug,
-          logoUrl: normalizedLogoUrl || null,
           showInDirectory,
         },
         select: {
+          name: true,
+          description: true,
+          address: true,
+          phones: true,
+          imageUrl: true,
           slug: true,
-          logoUrl: true,
           showInDirectory: true,
         },
       });
@@ -104,8 +130,12 @@ export const updateBarbershopBranding = protectedActionClient
 
       return {
         success: true,
+        name: updatedBarbershop.name,
+        description: updatedBarbershop.description,
+        address: updatedBarbershop.address,
+        phones: updatedBarbershop.phones,
+        imageUrl: updatedBarbershop.imageUrl,
         slug: updatedBarbershop.slug,
-        logoUrl: updatedBarbershop.logoUrl,
         showInDirectory: updatedBarbershop.showInDirectory,
       };
     },

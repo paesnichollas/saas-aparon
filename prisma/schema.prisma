@@ -31,8 +31,17 @@ model Barbershop {
   services               BarbershopService[]
   bookings               Booking[]
   openingHours           BarbershopOpeningHours[]
+  appConfigs             AppConfig[]             @relation("ExclusiveBarbershopConfig")
 
   @@index([ownerId])
+}
+
+model AppConfig {
+  id                    String     @id @default("app")
+  exclusiveBarbershopId String?
+  exclusiveBarbershop   Barbershop? @relation("ExclusiveBarbershopConfig", fields: [exclusiveBarbershopId], references: [id], onDelete: SetNull)
+
+  @@index([exclusiveBarbershopId])
 }
 
 model BarbershopService {

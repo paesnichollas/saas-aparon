@@ -173,6 +173,16 @@ async function seedDatabase() {
       barbershops.push(barbershop);
     }
 
+    await prisma.appConfig.upsert({
+      where: {
+        id: "app",
+      },
+      update: {},
+      create: {
+        id: "app",
+      },
+    });
+
     // Fechar a conexão com o banco de dados
     await prisma.$disconnect();
   } catch (error) {

@@ -1,24 +1,41 @@
-import Header from "@/components/header";
 import Image from "next/image";
-import banner from "@/public/banner.png";
-import BookingItem from "@/components/booking-item";
 
+import BarbershopItem from "@/components/barbershop-item";
+import BookingItem from "@/components/booking-item";
+import ExclusiveBarbershopLanding from "@/components/exclusive-barbershop-landing";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
+import QuickSearch from "@/components/quick-search";
+import { getExclusiveBarbershop } from "@/data/app-config";
 import { getBarbershops, getPopularBarbershops } from "@/data/barbershops";
 import { getUserBookings } from "@/data/bookings";
-import BarbershopItem from "@/components/barbershop-item";
 import {
   PageContainer,
   PageSectionContent,
   PageSectionScroller,
   PageSectionTitle,
 } from "@/components/ui/page";
-import Footer from "@/components/footer";
-import QuickSearch from "@/components/quick-search";
+import banner from "@/public/banner.png";
 
 export default async function Home() {
-  const barbershops = await getBarbershops();
-  const popularBarbershops = await getPopularBarbershops();
-  const { confirmedBookings } = await getUserBookings();
+  const exclusiveBarbershop = await getExclusiveBarbershop();
+
+  if (exclusiveBarbershop) {
+    return (
+      <div>
+        <Header homeHref="/" showDirectoryLinks={false} />
+        <ExclusiveBarbershopLanding barbershop={exclusiveBarbershop} />
+        <Footer />
+      </div>
+    );
+  }
+
+  const [barbershops, popularBarbershops, { confirmedBookings }] =
+    await Promise.all([
+      getBarbershops(),
+      getPopularBarbershops(),
+      getUserBookings(),
+    ]);
 
   return (
     <div>

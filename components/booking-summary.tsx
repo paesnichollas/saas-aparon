@@ -77,7 +77,7 @@ const BookingSummary = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-sm">Horario</p>
+          <p className="text-muted-foreground text-sm">Horário</p>
           <p className="text-sm">{formattedTime}</p>
         </div>
 
@@ -94,7 +94,7 @@ const BookingSummary = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-muted-foreground text-sm">Duracao total</p>
+          <p className="text-muted-foreground text-sm">Duração total</p>
           <p className="text-sm">{formatDuration(resolvedDurationInMinutes)}</p>
         </div>
 

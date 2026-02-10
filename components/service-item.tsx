@@ -11,7 +11,7 @@ interface ServiceItemProps {
 
 const ServiceItem = ({ service, fallbackImageUrl }: ServiceItemProps) => {
   const serviceImageUrl = service.imageUrl ?? fallbackImageUrl;
-  const serviceDescription = service.description?.trim() || "Sem descricao.";
+  const serviceDescription = service.description?.trim() || "Sem descrição.";
 
   return (
     <div className="border-border bg-card flex gap-3 rounded-2xl border p-3">

@@ -2,17 +2,30 @@
 
 import { updateBarbershopBranding } from "@/actions/update-barbershop-branding";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { FormEvent, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageOff, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 type BrandingSettingsFormProps = {
   barbershopId: string;
+  name: string;
+  description: string;
+  address: string;
+  phones: string[];
+  imageUrl: string;
   slug: string;
-  logoUrl: string | null;
   showInDirectory: boolean;
 };
 
@@ -25,116 +38,283 @@ const normalizeSlugValue = (value: string) =>
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 
+const parsePhonesInput = (value: string) =>
+  value
+    .split(/[\n,;]+/)
+    .map((phone) => phone.trim())
+    .filter(Boolean);
+
+const formatPhonesInput = (phones: string[]) => phones.join(", ");
+
 const BrandingSettingsForm = ({
   barbershopId,
+  name,
+  description,
+  address,
+  phones,
+  imageUrl,
   slug,
-  logoUrl,
   showInDirectory,
 }: BrandingSettingsFormProps) => {
+  const router = useRouter();
+  const [nameInput, setNameInput] = useState(name);
+  const [descriptionInput, setDescriptionInput] = useState(description);
+  const [addressInput, setAddressInput] = useState(address);
+  const [phonesInput, setPhonesInput] = useState(formatPhonesInput(phones));
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState<string | null>(
+    imageUrl,
+  );
   const [slugInput, setSlugInput] = useState(slug);
-  const [logoUrlInput, setLogoUrlInput] = useState(logoUrl ?? "");
-  const [isVisibleInDirectory, setIsVisibleInDirectory] =
-    useState(showInDirectory);
+  const [isUploadingBackgroundImage, setIsUploadingBackgroundImage] =
+    useState(false);
 
   const { executeAsync: executeUpdateBranding, isPending } = useAction(
     updateBarbershopBranding,
   );
 
+  const isFormBusy = isPending || isUploadingBackgroundImage;
   const slugPreview = useMemo(() => normalizeSlugValue(slugInput), [slugInput]);
+
+  const handleBackgroundImageUpload = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const selectedFile = event.target.files?.[0];
+
+    if (!selectedFile) {
+      return;
+    }
+
+    setIsUploadingBackgroundImage(true);
+
+    const uploadFormData = new FormData();
+    uploadFormData.append("barbershopId", barbershopId);
+    uploadFormData.append("file", selectedFile);
+
+    try {
+      const uploadResponse = await fetch("/api/uploads/barbershops", {
+        method: "POST",
+        body: uploadFormData,
+      });
+
+      const uploadResponseData = (await uploadResponse.json()) as
+        | {
+            url?: string;
+            error?: string;
+          }
+        | undefined;
+
+      if (!uploadResponse.ok || !uploadResponseData?.url) {
+        toast.error(
+          uploadResponseData?.error ??
+            "Erro ao enviar imagem de fundo. Tente novamente.",
+        );
+        return;
+      }
+
+      setBackgroundImageUrl(uploadResponseData.url);
+      toast.success("Imagem de fundo enviada com sucesso.");
+    } catch {
+      toast.error("Erro ao enviar imagem de fundo. Tente novamente.");
+    } finally {
+      setIsUploadingBackgroundImage(false);
+      event.target.value = "";
+    }
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (isUploadingBackgroundImage) {
+      toast.error("Aguarde o envio da imagem do banner finalizar.");
+      return;
+    }
+
     if (!slugPreview) {
-      toast.error("Informe um slug válido para a URL pública.");
+      toast.error("Informe um slug valido para a URL publica.");
+      return;
+    }
+
+    const parsedPhones = parsePhonesInput(phonesInput);
+
+    if (parsedPhones.length === 0) {
+      toast.error("Informe pelo menos um telefone de contato.");
+      return;
+    }
+
+    if (!backgroundImageUrl?.trim()) {
+      toast.error("Envie uma imagem de banner para a barbearia.");
       return;
     }
 
     const result = await executeUpdateBranding({
       barbershopId,
+      name: nameInput.trim(),
+      description: descriptionInput.trim(),
+      address: addressInput.trim(),
+      phones: parsedPhones,
+      imageUrl: backgroundImageUrl.trim(),
       slug: slugPreview,
-      logoUrl: logoUrlInput.trim(),
-      showInDirectory: isVisibleInDirectory,
+      showInDirectory,
     });
 
     if (result.validationErrors) {
-      toast.error(result.validationErrors._errors?.[0] ?? "Dados inválidos.");
+      toast.error(result.validationErrors._errors?.[0] ?? "Dados invalidos.");
       return;
     }
 
-    if (result.serverError) {
-      toast.error("Erro ao salvar branding. Tente novamente.");
+    if (result.serverError || !result.data) {
+      toast.error("Erro ao salvar configuracoes. Tente novamente.");
       return;
     }
 
-    if (!result.data) {
-      toast.error("Erro ao salvar branding. Tente novamente.");
-      return;
-    }
-
+    setNameInput(result.data.name);
+    setDescriptionInput(result.data.description);
+    setAddressInput(result.data.address);
+    setPhonesInput(formatPhonesInput(result.data.phones));
+    setBackgroundImageUrl(result.data.imageUrl);
     setSlugInput(result.data.slug);
-    setLogoUrlInput(result.data.logoUrl ?? "");
-    setIsVisibleInDirectory(result.data.showInDirectory);
-    toast.success("Branding atualizado com sucesso.");
+    toast.success("Dados da barbearia atualizados com sucesso.");
+    router.refresh();
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Branding e URL pública</CardTitle>
+        <CardTitle>Dados da barbearia</CardTitle>
         <CardDescription>
-          Configure slug, logo e visibilidade no diretório sem criar outro app.
+          Atualize nome, descricao, endereco, contato e banner da barbearia.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <label htmlFor="barbershop-name" className="text-sm font-medium">
+              Nome da barbearia
+            </label>
+            <Input
+              id="barbershop-name"
+              value={nameInput}
+              onChange={(event) => setNameInput(event.target.value)}
+              placeholder="Nome da barbearia"
+              disabled={isFormBusy}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="barbershop-description" className="text-sm font-medium">
+              Descricao
+            </label>
+            <Textarea
+              id="barbershop-description"
+              value={descriptionInput}
+              onChange={(event) => setDescriptionInput(event.target.value)}
+              placeholder="Descreva os diferenciais da sua barbearia"
+              rows={4}
+              disabled={isFormBusy}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="barbershop-address" className="text-sm font-medium">
+              Endereco
+            </label>
+            <Input
+              id="barbershop-address"
+              value={addressInput}
+              onChange={(event) => setAddressInput(event.target.value)}
+              placeholder="Rua, numero, bairro, cidade"
+              disabled={isFormBusy}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="barbershop-phones" className="text-sm font-medium">
+              Telefones de contato
+            </label>
+            <Input
+              id="barbershop-phones"
+              value={phonesInput}
+              onChange={(event) => setPhonesInput(event.target.value)}
+              placeholder="(11) 99999-9999, (11) 98888-7777"
+              disabled={isFormBusy}
+            />
+            <p className="text-muted-foreground text-xs">
+              Use virgula, ponto e virgula ou quebra de linha para separar.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="barbershop-background-upload"
+              className="text-sm font-medium"
+            >
+              Banner da barbearia
+            </label>
+            <Input
+              id="barbershop-background-upload"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={handleBackgroundImageUpload}
+              disabled={isFormBusy}
+            />
+            <p className="text-muted-foreground text-xs">
+              O banner e enviado e convertido em URL no backend.
+            </p>
+            {backgroundImageUrl ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setBackgroundImageUrl(null)}
+                disabled={isFormBusy}
+              >
+                Remover banner
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Preview do banner</p>
+            <div className="bg-muted relative aspect-video w-full overflow-hidden rounded-lg border">
+              {backgroundImageUrl ? (
+                <Image
+                  src={backgroundImageUrl}
+                  alt={nameInput.trim() || "Preview do banner"}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="text-muted-foreground flex h-full items-center justify-center gap-2 text-sm">
+                  <ImageOff className="size-4" />
+                  Sem banner para preview.
+                </div>
+              )}
+              {isUploadingBackgroundImage ? (
+                <div className="bg-background/80 absolute inset-0 flex items-center justify-center gap-2 text-sm">
+                  <Loader2 className="size-4 animate-spin" />
+                  Enviando banner...
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="space-y-2">
             <label htmlFor="barbershop-slug" className="text-sm font-medium">
-              Slug público
+              Slug publico
             </label>
             <Input
               id="barbershop-slug"
               value={slugInput}
               onChange={(event) => setSlugInput(event.target.value)}
               placeholder="minha-barbearia"
-              disabled={isPending}
+              disabled={isFormBusy}
             />
             <p className="text-muted-foreground text-xs">
               URL: {slugPreview ? `/b/${slugPreview}` : "/b/slug-da-barbearia"}
             </p>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="barbershop-logo-url" className="text-sm font-medium">
-              URL da logo
-            </label>
-            <Input
-              id="barbershop-logo-url"
-              type="url"
-              value={logoUrlInput}
-              onChange={(event) => setLogoUrlInput(event.target.value)}
-              placeholder="https://..."
-              disabled={isPending}
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Aparecer no diretório público</p>
-              <p className="text-muted-foreground text-xs">
-                Quando desligado, fica fora da Home e listagens gerais.
-              </p>
-            </div>
-            <Switch
-              id="show-in-directory-switch"
-              checked={isVisibleInDirectory}
-              onCheckedChange={setIsVisibleInDirectory}
-              disabled={isPending}
-            />
-          </div>
-
-          <Button type="submit" disabled={isPending || !slugPreview}>
-            Salvar branding
+          <Button type="submit" disabled={isFormBusy || !slugPreview}>
+            Salvar dados da barbearia
           </Button>
         </form>
       </CardContent>
