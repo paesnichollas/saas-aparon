@@ -1,6 +1,22 @@
-"use client";
+﻿"use client";
 
+import {
+  BarChart3,
+  CalendarDays,
+  Home,
+  LogIn,
+  LogOut,
+  MenuIcon,
+  Shield,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+import { type UserRole } from "@/generated/prisma/client";
+import { authClient } from "@/lib/auth-client";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import {
   Sheet,
@@ -10,41 +26,36 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { MenuIcon, Home, CalendarDays, LogOut, LogIn } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
-import { toast } from "sonner";
 
-const isLoggedIn = false;
+interface MenuSheetProps {
+  homeHref?: string;
+  userRole?: UserRole | null;
+}
 
-const categories = [
-  { label: "Cabelo", search: "cabelo" },
-  { label: "Barba", search: "barba" },
-  { label: "Acabamento", search: "acabamento" },
-  { label: "Sobrancelha", search: "sobrancelha" },
-  { label: "Massagem", search: "massagem" },
-  { label: "Hidratacao", search: "hidratacao" },
-];
-
-const MenuSheet = () => {
+const MenuSheet = ({
+  homeHref = "/",
+  userRole = null,
+}: MenuSheetProps) => {
+  const router = useRouter();
   const { data: session } = authClient.useSession();
-  const handleLogin = async () => {
-    const { error } = await authClient.signIn.social({
-      provider: "google",
-    });
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-  };
+  const user = session?.user;
+
   const handleLogout = async () => {
     const { error } = await authClient.signOut();
+
     if (error) {
       toast.error(error.message);
       return;
     }
+
+    router.replace("/auth");
+    router.refresh();
   };
-  const isLoggedIn = !!session?.user;
+
+  const isLoggedIn = Boolean(user);
+  const canAccessOwnerPanel = userRole === "OWNER";
+  const canAccessAdminPanel = userRole === "ADMIN";
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -59,30 +70,27 @@ const MenuSheet = () => {
 
         <div className="flex flex-col gap-6 py-6">
           <div className="flex items-center justify-between px-5">
-            {isLoggedIn ? (
+            {user ? (
               <div className="flex items-center gap-3">
                 <Avatar className="size-12">
-                  <AvatarImage
-                    src={session.user.image ?? ""}
-                    alt={session.user.name}
-                  />
+                  <AvatarImage src={user.image ?? ""} alt={user.name} />
                   <AvatarFallback>
-                    {session.user.name.charAt(0).toUpperCase()}
+                    {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="font-semibold">{session.user.name}</span>
-                  <span className="text-muted-foreground text-sm">
-                    {session.user.email}
-                  </span>
+                  <span className="font-semibold">{user.name}</span>
+                  <span className="text-muted-foreground text-sm">{user.email}</span>
                 </div>
               </div>
             ) : (
               <>
-                <p className="font-semibold">Olá. Faça seu login!</p>
-                <Button className="gap-3 rounded-full" onClick={handleLogin}>
-                  Login
-                  <LogIn className="size-4" />
+                <p className="font-semibold">Ola. Faca seu login!</p>
+                <Button asChild className="gap-3 rounded-full">
+                  <Link href="/auth">
+                    Login
+                    <LogIn className="size-4" />
+                  </Link>
                 </Button>
               </>
             )}
@@ -91,11 +99,11 @@ const MenuSheet = () => {
           <div className="flex flex-col">
             <SheetClose asChild>
               <Link
-                href="/"
+                href={homeHref}
                 className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
               >
                 <Home className="size-4" />
-                Início
+                Inicio
               </Link>
             </SheetClose>
             <SheetClose asChild>
@@ -107,34 +115,53 @@ const MenuSheet = () => {
                 Agendamentos
               </Link>
             </SheetClose>
-          </div>
-
-          <div className="border-border border-b" />
-
-          <div className="flex flex-col gap-1">
-            {categories.map((category) => (
-              <SheetClose key={category.search} asChild>
+            {isLoggedIn && canAccessOwnerPanel && (
+              <>
+                <SheetClose asChild>
+                  <Link
+                    href="/owner"
+                    className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                  >
+                    <ShieldCheck className="size-4" />
+                    Painel Administrativo
+                  </Link>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Link
+                    href="/owner/reports"
+                    className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                  >
+                    <BarChart3 className="size-4" />
+                    Relatório
+                  </Link>
+                </SheetClose>
+              </>
+            )}
+            {isLoggedIn && canAccessAdminPanel && (
+              <SheetClose asChild>
                 <Link
-                  href={`/barbershops?search=${category.search}`}
-                  className="px-5 py-3 text-sm font-medium"
+                  href="/admin"
+                  className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
                 >
-                  {category.label}
+                  <Shield className="size-4" />
+                  Painel admin
                 </Link>
               </SheetClose>
-            ))}
+            )}
           </div>
 
-          <div className="border-border border-b" />
-
           {isLoggedIn && (
-            <Button
-              variant="ghost"
-              className="justify-left w-fit text-left"
-              onClick={handleLogout}
-            >
-              <LogOut className="size-4" />
-              Sair da conta
-            </Button>
+            <>
+              <div className="border-border border-b" />
+              <Button
+                variant="ghost"
+                className="justify-left w-fit text-left"
+                onClick={handleLogout}
+              >
+                <LogOut className="size-4" />
+                Sair da conta
+              </Button>
+            </>
           )}
         </div>
       </SheetContent>

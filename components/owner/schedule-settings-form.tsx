@@ -1,0 +1,265 @@
+"use client";
+
+import { updateBarbershopSchedule } from "@/actions/update-barbershop-schedule";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useAction } from "next-safe-action/hooks";
+import { useState } from "react";
+import { toast } from "sonner";
+
+type OpeningHourFormValue = {
+  dayOfWeek: number;
+  openMinute: number;
+  closeMinute: number;
+  closed: boolean;
+};
+
+type ScheduleSettingsFormProps = {
+  barbershopId: string;
+  openingHours: OpeningHourFormValue[];
+};
+
+const dayLabels: Record<number, string> = {
+  0: "Domingo",
+  1: "Segunda",
+  2: "Terça",
+  3: "Quarta",
+  4: "Quinta",
+  5: "Sexta",
+  6: "Sábado",
+};
+
+const toTimeInputValue = (minute: number) => {
+  const hours = Math.floor(minute / 60);
+  const minutes = minute % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+};
+
+const toMinuteValue = (timeValue: string) => {
+  const [hoursString, minutesString] = timeValue.split(":");
+  const hours = Number(hoursString);
+  const minutes = Number(minutesString);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    return null;
+  }
+
+  return hours * 60 + minutes;
+};
+
+const getScheduleLabel = (openingHour: OpeningHourFormValue) => {
+  if (openingHour.closed) {
+    return "Fechado";
+  }
+
+  return `Aberto ${toTimeInputValue(openingHour.openMinute)}-${toTimeInputValue(openingHour.closeMinute)}`;
+};
+
+const getDefaultOpeningHours = () =>
+  Array.from({ length: 7 }, (_, dayOfWeek) => ({
+    dayOfWeek,
+    openMinute: 9 * 60,
+    closeMinute: 18 * 60,
+    closed: false,
+  }));
+
+const mergeOpeningHours = (openingHours: OpeningHourFormValue[]) =>
+  getDefaultOpeningHours().map((defaultOpeningHour) => {
+    const existingOpeningHour = openingHours.find(
+      (openingHour) => openingHour.dayOfWeek === defaultOpeningHour.dayOfWeek,
+    );
+
+    if (!existingOpeningHour) {
+      return defaultOpeningHour;
+    }
+
+    return existingOpeningHour;
+  });
+
+const ScheduleSettingsForm = ({
+  barbershopId,
+  openingHours,
+}: ScheduleSettingsFormProps) => {
+  const [hoursInput, setHoursInput] = useState<OpeningHourFormValue[]>(
+    mergeOpeningHours(openingHours),
+  );
+
+  const { executeAsync: executeUpdateSchedule, isPending } =
+    useAction(updateBarbershopSchedule);
+
+  const handleTimeChange = (
+    dayOfWeek: number,
+    field: "openMinute" | "closeMinute",
+    timeValue: string,
+  ) => {
+    const minuteValue = toMinuteValue(timeValue);
+
+    if (minuteValue === null) {
+      return;
+    }
+
+    setHoursInput((currentHours) =>
+      currentHours.map((openingHour) => {
+        if (openingHour.dayOfWeek !== dayOfWeek) {
+          return openingHour;
+        }
+
+        return {
+          ...openingHour,
+          [field]: minuteValue,
+        };
+      }),
+    );
+  };
+
+  const handleClosedToggle = (dayOfWeek: number) => {
+    setHoursInput((currentHours) =>
+      currentHours.map((openingHour) => {
+        if (openingHour.dayOfWeek !== dayOfWeek) {
+          return openingHour;
+        }
+
+        return {
+          ...openingHour,
+          closed: !openingHour.closed,
+        };
+      }),
+    );
+  };
+
+  const handleSubmit = async () => {
+    const result = await executeUpdateSchedule({
+      barbershopId,
+      openingHours: hoursInput,
+    });
+
+    if (result.validationErrors) {
+      toast.error(result.validationErrors._errors?.[0] ?? "Dados inválidos.");
+      return;
+    }
+
+    if (result.serverError) {
+      toast.error(
+        "Erro ao salvar agenda da barbearia. Por favor, tente novamente.",
+      );
+      return;
+    }
+
+    toast.success("Agenda da barbearia atualizada com sucesso.");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Configurações da agenda</CardTitle>
+        <CardDescription>
+          Defina horario de funcionamento por dia da semana.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Accordion type="multiple" className="rounded-lg border">
+          {hoursInput.map((openingHour) => (
+            <AccordionItem
+              key={openingHour.dayOfWeek}
+              value={`opening-hour-${openingHour.dayOfWeek}`}
+              className="px-3"
+            >
+              <AccordionTrigger className="py-2 hover:no-underline">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                  <p className="truncate text-sm font-medium">
+                    {`${dayLabels[openingHour.dayOfWeek]} - ${getScheduleLabel(openingHour)}`}
+                  </p>
+                  <Badge
+                    variant={openingHour.closed ? "secondary" : "outline"}
+                    className="text-xs"
+                  >
+                    {openingHour.closed ? "Fechado" : "Aberto"}
+                  </Badge>
+                </div>
+              </AccordionTrigger>
+
+              <AccordionContent>
+                <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`opening-${openingHour.dayOfWeek}`}
+                      className="text-muted-foreground text-xs font-medium"
+                    >
+                      Abertura
+                    </label>
+                    <Input
+                      id={`opening-${openingHour.dayOfWeek}`}
+                      type="time"
+                      value={toTimeInputValue(openingHour.openMinute)}
+                      onChange={(event) =>
+                        handleTimeChange(
+                          openingHour.dayOfWeek,
+                          "openMinute",
+                          event.target.value,
+                        )
+                      }
+                      disabled={isPending || openingHour.closed}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`closing-${openingHour.dayOfWeek}`}
+                      className="text-muted-foreground text-xs font-medium"
+                    >
+                      Fechamento
+                    </label>
+                    <Input
+                      id={`closing-${openingHour.dayOfWeek}`}
+                      type="time"
+                      value={toTimeInputValue(openingHour.closeMinute)}
+                      onChange={(event) =>
+                        handleTimeChange(
+                          openingHour.dayOfWeek,
+                          "closeMinute",
+                          event.target.value,
+                        )
+                      }
+                      disabled={isPending || openingHour.closed}
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant={openingHour.closed ? "secondary" : "outline"}
+                    onClick={() => handleClosedToggle(openingHour.dayOfWeek)}
+                    disabled={isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {openingHour.closed ? "Fechado" : "Aberto"}
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+
+        <Button onClick={handleSubmit} disabled={isPending}>
+          Salvar agenda
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ScheduleSettingsForm;

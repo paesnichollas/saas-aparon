@@ -1,24 +1,65 @@
-import Header from "@/components/header";
 import Image from "next/image";
-import banner from "@/public/banner.png";
-import BookingItem from "@/components/booking-item";
+import { cookies } from "next/headers";
 
-import { getBarbershops, getPopularBarbershops } from "@/data/barbershops";
-import { getUserBookings } from "@/data/bookings";
 import BarbershopItem from "@/components/barbershop-item";
+import BackToTopButton from "@/components/back-to-top-button";
+import BookingItem from "@/components/booking-item";
+import ExclusiveBarbershopLanding from "@/components/exclusive-barbershop-landing";
+import Footer from "@/components/footer";
+import Header from "@/components/header";
+import QuickSearch from "@/components/quick-search";
+import {
+  getBarbershops,
+  getExclusiveBarbershopByContextId,
+  getPopularBarbershops,
+} from "@/data/barbershops";
+import { getUserBookings } from "@/data/bookings";
+import { getPreferredBarbershopIdForUser } from "@/data/customer-barbershops";
 import {
   PageContainer,
   PageSectionContent,
   PageSectionScroller,
   PageSectionTitle,
 } from "@/components/ui/page";
-import Footer from "@/components/footer";
-import QuickSearch from "@/components/quick-search";
+import { BARBERSHOP_CONTEXT_COOKIE_NAME } from "@/lib/barbershop-context";
+import { requireAuthenticatedUser } from "@/lib/rbac";
+import banner from "@/public/banner.png";
 
 export default async function Home() {
-  const barbershops = await getBarbershops();
-  const popularBarbershops = await getPopularBarbershops();
-  const { confirmedBookings } = await getUserBookings();
+  const user = await requireAuthenticatedUser();
+  const cookieStore = await cookies();
+  const barbershopContextIdFromCookie =
+    cookieStore.get(BARBERSHOP_CONTEXT_COOKIE_NAME)?.value ?? null;
+  const fallbackBarbershopContextId = await getPreferredBarbershopIdForUser(
+    user.id,
+  );
+  const barbershopContextId =
+    barbershopContextIdFromCookie ?? fallbackBarbershopContextId;
+
+  const exclusiveBarbershop = await getExclusiveBarbershopByContextId(
+    barbershopContextId,
+  );
+
+  if (exclusiveBarbershop) {
+    return (
+      <div>
+        <Header
+          homeHref="/"
+          chatHref={`/chat?barbershopPublicSlug=${encodeURIComponent(exclusiveBarbershop.slug)}`}
+        />
+        <ExclusiveBarbershopLanding barbershop={exclusiveBarbershop} />
+        <Footer />
+        <BackToTopButton />
+      </div>
+    );
+  }
+
+  const [barbershops, popularBarbershops, { confirmedBookings }] =
+    await Promise.all([
+      getBarbershops(),
+      getPopularBarbershops(),
+      getUserBookings(),
+    ]);
 
   return (
     <div>
@@ -59,6 +100,7 @@ export default async function Home() {
         </PageSectionContent>
       </PageContainer>
       <Footer />
+      <BackToTopButton />
     </div>
   );
 }
