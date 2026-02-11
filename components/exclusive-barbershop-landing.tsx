@@ -11,7 +11,12 @@ import Image from "next/image";
 import Link from "next/link";
 
 import BookingSheet from "@/components/booking-sheet";
-import ServiceItem from "@/components/service-item";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -81,13 +86,9 @@ const ExclusiveBarbershopLanding = ({
   );
   const displayedHomePremiumChips =
     homePremiumChips.length > 0 ? homePremiumChips : DEFAULT_HOME_PREMIUM_CHIPS;
-  const selectedFeaturedServices = barbershop.services.filter(
+  const featuredServices = barbershop.services.filter(
     (service) => service.isFeatured,
   );
-  const featuredServices =
-    selectedFeaturedServices.length > 0
-      ? selectedFeaturedServices
-      : barbershop.services.slice(0, 3);
   const openingHoursMap = new Map(
     barbershop.openingHours.map((openingHour) => [
       openingHour.dayOfWeek,
@@ -295,15 +296,68 @@ const ExclusiveBarbershopLanding = ({
         <PageSectionContent>
           <PageSectionTitle>Todos os servicos</PageSectionTitle>
           {barbershop.services.length > 0 ? (
-            <div className="space-y-3">
-              {barbershop.services.map((service) => (
-                <ServiceItem
-                  key={service.id}
-                  service={service}
-                  fallbackImageUrl={barbershop.imageUrl}
-                />
-              ))}
-            </div>
+            <Accordion type="single" collapsible className="rounded-2xl border px-3">
+              {barbershop.services.map((service) => {
+                const serviceImageUrl = service.imageUrl ?? barbershop.imageUrl;
+                const serviceDescription =
+                  service.description?.trim() || "Sem descrição.";
+                const firstPhone = barbershop.phones[0];
+
+                return (
+                  <AccordionItem key={service.id} value={`service-${service.id}`}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <p className="truncate text-sm font-medium">{service.name}</p>
+                        <div className="ml-auto flex shrink-0 items-center gap-2">
+                          <p className="text-sm font-semibold">
+                            {formatCurrency(service.priceInCents)}
+                          </p>
+                          <Badge variant="secondary" className="text-xs">
+                            {service.durationInMinutes} min
+                          </Badge>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+
+                    <AccordionContent>
+                      <div className="space-y-3">
+                        <div className="relative h-[10rem] w-full overflow-hidden rounded-2xl border sm:h-[12rem]">
+                          <Image
+                            src={serviceImageUrl}
+                            alt={service.name}
+                            fill
+                            className="object-cover"
+                            sizes="(max-width: 48rem) 100vw, 50vw"
+                          />
+                        </div>
+                        <p className="text-muted-foreground text-sm">
+                          {serviceDescription}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {firstPhone ? (
+                            <Button asChild size="sm" className="rounded-full">
+                              <Link
+                                href={`tel:${firstPhone.replace(/[^\d+]/g, "")}`}
+                              >
+                                Ligar agora
+                              </Link>
+                            </Button>
+                          ) : null}
+                          <Button
+                            asChild
+                            size="sm"
+                            variant="outline"
+                            className="rounded-full"
+                          >
+                            <Link href="#contato">Ver contato</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           ) : (
             <Card>
               <CardContent>

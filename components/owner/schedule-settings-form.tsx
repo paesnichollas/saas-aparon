@@ -1,6 +1,13 @@
 "use client";
 
 import { updateBarbershopSchedule } from "@/actions/update-barbershop-schedule";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -53,6 +60,14 @@ const toMinuteValue = (timeValue: string) => {
   }
 
   return hours * 60 + minutes;
+};
+
+const getScheduleLabel = (openingHour: OpeningHourFormValue) => {
+  if (openingHour.closed) {
+    return "Fechado";
+  }
+
+  return `Aberto ${toTimeInputValue(openingHour.openMinute)}-${toTimeInputValue(openingHour.closeMinute)}`;
 };
 
 const getDefaultOpeningHours = () =>
@@ -157,73 +172,87 @@ const ScheduleSettingsForm = ({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-3">
+        <Accordion type="multiple" className="rounded-lg border">
           {hoursInput.map((openingHour) => (
-            <div
+            <AccordionItem
               key={openingHour.dayOfWeek}
-              className="grid items-end gap-3 rounded-lg border p-3 md:grid-cols-[9rem_1fr_1fr_auto]"
+              value={`opening-hour-${openingHour.dayOfWeek}`}
+              className="px-3"
             >
-              <div>
-                <p className="text-sm font-semibold">
-                  {dayLabels[openingHour.dayOfWeek]}
-                </p>
-              </div>
+              <AccordionTrigger className="py-2 hover:no-underline">
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                  <p className="truncate text-sm font-medium">
+                    {`${dayLabels[openingHour.dayOfWeek]} - ${getScheduleLabel(openingHour)}`}
+                  </p>
+                  <Badge
+                    variant={openingHour.closed ? "secondary" : "outline"}
+                    className="text-xs"
+                  >
+                    {openingHour.closed ? "Fechado" : "Aberto"}
+                  </Badge>
+                </div>
+              </AccordionTrigger>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor={`opening-${openingHour.dayOfWeek}`}
-                  className="text-muted-foreground text-xs font-medium"
-                >
-                  Abertura
-                </label>
-                <Input
-                  id={`opening-${openingHour.dayOfWeek}`}
-                  type="time"
-                  value={toTimeInputValue(openingHour.openMinute)}
-                  onChange={(event) =>
-                    handleTimeChange(
-                      openingHour.dayOfWeek,
-                      "openMinute",
-                      event.target.value,
-                    )
-                  }
-                  disabled={isPending || openingHour.closed}
-                />
-              </div>
+              <AccordionContent>
+                <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`opening-${openingHour.dayOfWeek}`}
+                      className="text-muted-foreground text-xs font-medium"
+                    >
+                      Abertura
+                    </label>
+                    <Input
+                      id={`opening-${openingHour.dayOfWeek}`}
+                      type="time"
+                      value={toTimeInputValue(openingHour.openMinute)}
+                      onChange={(event) =>
+                        handleTimeChange(
+                          openingHour.dayOfWeek,
+                          "openMinute",
+                          event.target.value,
+                        )
+                      }
+                      disabled={isPending || openingHour.closed}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor={`closing-${openingHour.dayOfWeek}`}
-                  className="text-muted-foreground text-xs font-medium"
-                >
-                  Fechamento
-                </label>
-                <Input
-                  id={`closing-${openingHour.dayOfWeek}`}
-                  type="time"
-                  value={toTimeInputValue(openingHour.closeMinute)}
-                  onChange={(event) =>
-                    handleTimeChange(
-                      openingHour.dayOfWeek,
-                      "closeMinute",
-                      event.target.value,
-                    )
-                  }
-                  disabled={isPending || openingHour.closed}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor={`closing-${openingHour.dayOfWeek}`}
+                      className="text-muted-foreground text-xs font-medium"
+                    >
+                      Fechamento
+                    </label>
+                    <Input
+                      id={`closing-${openingHour.dayOfWeek}`}
+                      type="time"
+                      value={toTimeInputValue(openingHour.closeMinute)}
+                      onChange={(event) =>
+                        handleTimeChange(
+                          openingHour.dayOfWeek,
+                          "closeMinute",
+                          event.target.value,
+                        )
+                      }
+                      disabled={isPending || openingHour.closed}
+                    />
+                  </div>
 
-              <Button
-                type="button"
-                variant={openingHour.closed ? "secondary" : "outline"}
-                onClick={() => handleClosedToggle(openingHour.dayOfWeek)}
-                disabled={isPending}
-              >
-                {openingHour.closed ? "Fechado" : "Aberto"}
-              </Button>
-            </div>
+                  <Button
+                    type="button"
+                    variant={openingHour.closed ? "secondary" : "outline"}
+                    onClick={() => handleClosedToggle(openingHour.dayOfWeek)}
+                    disabled={isPending}
+                    className="w-full sm:w-auto"
+                  >
+                    {openingHour.closed ? "Fechado" : "Aberto"}
+                  </Button>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
 
         <Button onClick={handleSubmit} disabled={isPending}>
           Salvar agenda
