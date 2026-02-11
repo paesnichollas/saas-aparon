@@ -1,5 +1,6 @@
 import BarbersManagementCard from "@/components/owner/barbers-management-card";
 import BrandingSettingsForm from "@/components/owner/branding-settings-form";
+import ExclusiveHomeCustomizationCard from "@/components/owner/exclusive-home-customization-card";
 import PaymentSettingsForm from "@/components/owner/payment-settings-form";
 import ScheduleSettingsForm from "@/components/owner/schedule-settings-form";
 import ServicesManagementCard from "@/components/owner/services-management-card";
@@ -226,6 +227,18 @@ const OwnerPage = async () => {
             closed: openingHour.closed,
           }))}
         />
+        {barbershop.exclusiveBarber ? (
+          <ExclusiveHomeCustomizationCard
+            homePremiumTitle={barbershop.homePremiumTitle}
+            homePremiumDescription={barbershop.homePremiumDescription}
+            homePremiumChips={barbershop.homePremiumChips}
+            services={services.map((service) => ({
+              id: service.id,
+              name: service.name,
+              isFeatured: service.isFeatured,
+            }))}
+          />
+        ) : null}
       </PageSectionContent>
 
       <PageSectionContent>

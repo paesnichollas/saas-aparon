@@ -48,6 +48,15 @@ const dayLabels = [
   "Sabado",
 ];
 
+const DEFAULT_HOME_PREMIUM_TITLE = "Experiencia premium na home";
+const DEFAULT_HOME_PREMIUM_DESCRIPTION =
+  "Sua barbearia fica em destaque para todos os acessos em modo exclusivo.";
+const DEFAULT_HOME_PREMIUM_CHIPS = [
+  "Atendimento personalizado",
+  "Reserva em poucos passos",
+  "Visual profissional",
+];
+
 const formatMinutes = (minutes: number) => {
   const hours = Math.floor(minutes / 60)
     .toString()
@@ -63,7 +72,22 @@ const ExclusiveBarbershopLanding = ({
     barbershop.services.length > 0
       ? Math.min(...barbershop.services.map((service) => service.priceInCents))
       : null;
-  const featuredServices = barbershop.services.slice(0, 3);
+  const homePremiumTitle =
+    barbershop.homePremiumTitle.trim() || DEFAULT_HOME_PREMIUM_TITLE;
+  const homePremiumDescription =
+    barbershop.homePremiumDescription.trim() || DEFAULT_HOME_PREMIUM_DESCRIPTION;
+  const homePremiumChips = barbershop.homePremiumChips.filter(
+    (chip) => chip.trim().length > 0,
+  );
+  const displayedHomePremiumChips =
+    homePremiumChips.length > 0 ? homePremiumChips : DEFAULT_HOME_PREMIUM_CHIPS;
+  const selectedFeaturedServices = barbershop.services.filter(
+    (service) => service.isFeatured,
+  );
+  const featuredServices =
+    selectedFeaturedServices.length > 0
+      ? selectedFeaturedServices
+      : barbershop.services.slice(0, 3);
   const openingHoursMap = new Map(
     barbershop.openingHours.map((openingHour) => [
       openingHour.dayOfWeek,
@@ -179,21 +203,17 @@ const ExclusiveBarbershopLanding = ({
       <div className="grid gap-3 lg:grid-cols-5">
         <Card className="lg:col-span-3">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-base">
-              Experiencia premium na home
-            </CardTitle>
-            <CardDescription>
-              Sua barbearia fica em destaque para todos os acessos em modo
-              exclusivo.
-            </CardDescription>
+            <CardTitle className="text-base">{homePremiumTitle}</CardTitle>
+            <CardDescription>{homePremiumDescription}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm">{barbershop.description}</p>
             <Separator />
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">Atendimento personalizado</Badge>
-              <Badge variant="outline">Reserva em poucos passos</Badge>
-              <Badge variant="outline">Visual profissional</Badge>
+              {displayedHomePremiumChips.map((chip) => (
+                <Badge key={chip} variant="outline">
+                  {chip}
+                </Badge>
+              ))}
             </div>
           </CardContent>
         </Card>
