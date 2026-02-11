@@ -3,6 +3,7 @@
 /.vscode
 CLAUDE.md
 /prompts
+AGENTS.md
 # dependencies
 /node_modules
 /.pnp
