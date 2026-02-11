@@ -4,21 +4,39 @@ import { CONFIRMED_BOOKING_PAYMENT_WHERE } from "@/lib/booking-payment";
 import { prisma } from "@/lib/prisma";
 import {
   reconcilePendingBookingBySessionId,
+  reconcilePendingBookingsForBarbershop,
   reconcilePendingBookingsForUser,
 } from "@/lib/stripe-booking-reconciliation";
 import { headers } from "next/headers";
 
+const USER_BOOKING_INCLUDE = {
+  barbershop: true,
+  barber: true,
+  service: true,
+  services: {
+    include: {
+      service: true,
+    },
+  },
+} satisfies Prisma.BookingInclude;
+
+const OWNER_BOOKING_INCLUDE = {
+  user: true,
+  barber: true,
+  service: true,
+  services: {
+    include: {
+      service: true,
+    },
+  },
+} satisfies Prisma.BookingInclude;
+
 export type BookingWithRelations = Prisma.BookingGetPayload<{
-  include: {
-    barbershop: true;
-    barber: true;
-    service: true;
-    services: {
-      include: {
-        service: true;
-      };
-    };
-  };
+  include: typeof USER_BOOKING_INCLUDE;
+}>;
+
+export type OwnerBookingWithRelations = Prisma.BookingGetPayload<{
+  include: typeof OWNER_BOOKING_INCLUDE;
 }>;
 
 interface GetUserBookingsOptions {
@@ -70,16 +88,7 @@ export const getUserBookings = async (options?: GetUserBookingsOptions) => {
         cancelledAt: null,
         AND: [CONFIRMED_BOOKING_PAYMENT_WHERE],
       },
-      include: {
-        barbershop: true,
-        barber: true,
-        service: true,
-        services: {
-          include: {
-            service: true,
-          },
-        },
-      },
+      include: USER_BOOKING_INCLUDE,
       orderBy: { date: "asc" },
     }),
     prisma.booking.findMany({
@@ -91,19 +100,42 @@ export const getUserBookings = async (options?: GetUserBookingsOptions) => {
           { paymentStatus: "FAILED" },
         ],
       },
-      include: {
-        barbershop: true,
-        barber: true,
-        service: true,
-        services: {
-          include: {
-            service: true,
-          },
-        },
-      },
+      include: USER_BOOKING_INCLUDE,
       orderBy: { date: "desc" },
     }),
   ]);
 
   return { confirmedBookings, finishedBookings };
+};
+
+export const getOwnerBarbershopBookings = async (
+  barbershopId: string,
+): Promise<OwnerBookingWithRelations[]> => {
+  const normalizedBarbershopId = barbershopId.trim();
+
+  if (!normalizedBarbershopId) {
+    return [];
+  }
+
+  try {
+    await reconcilePendingBookingsForBarbershop(normalizedBarbershopId);
+  } catch (error) {
+    console.error(
+      "[getOwnerBarbershopBookings] Failed to reconcile pending bookings for barbershop.",
+      {
+        error,
+        barbershopId: normalizedBarbershopId,
+      },
+    );
+  }
+
+  return prisma.booking.findMany({
+    where: {
+      barbershopId: normalizedBarbershopId,
+    },
+    include: OWNER_BOOKING_INCLUDE,
+    orderBy: {
+      date: "desc",
+    },
+  });
 };

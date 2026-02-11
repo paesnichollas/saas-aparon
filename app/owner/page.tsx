@@ -4,6 +4,7 @@ import ExclusiveHomeCustomizationCard from "@/components/owner/exclusive-home-cu
 import PaymentSettingsForm from "@/components/owner/payment-settings-form";
 import ScheduleSettingsForm from "@/components/owner/schedule-settings-form";
 import ServicesManagementCard from "@/components/owner/services-management-card";
+import OwnerBookingsList from "@/components/bookings/owner-bookings-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,52 +21,11 @@ import {
 } from "@/data/barbershops";
 import { getServicesByBarbershopId } from "@/data/services";
 import { getBookingStartDate } from "@/lib/booking-calculations";
-import { getBookingStatus } from "@/lib/booking-status";
 import { requireOwnerOrAdmin } from "@/lib/rbac";
-import { formatCurrency } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  BarChart3,
-  CalendarDays,
-  MessageCircleMore,
-  Phone,
-  Scissors,
-  UserRound,
-} from "lucide-react";
+import { BarChart3, MessageCircleMore, Phone } from "lucide-react";
 import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
-
-const getStatusBadgeVariant = (
-  status: ReturnType<typeof getBookingStatus>,
-): "default" | "secondary" | "destructive" => {
-  if (status === "cancelled") {
-    return "destructive";
-  }
-  if (status === "finished") {
-    return "secondary";
-  }
-  return "default";
-};
-
-const getStatusLabel = (status: ReturnType<typeof getBookingStatus>) => {
-  if (status === "cancelled") {
-    return "Cancelado";
-  }
-  if (status === "finished") {
-    return "Finalizado";
-  }
-  return "Confirmado";
-};
-
-const getBookingTotalLabel = (totalPriceInCents: number | null) => {
-  if (typeof totalPriceInCents === "number") {
-    return `Total: ${formatCurrency(totalPriceInCents)}`;
-  }
-
-  return "Total indisponivel";
-};
 
 const getRequestOrigin = (requestHeaders: Headers) => {
   const host =
@@ -243,134 +203,18 @@ const OwnerPage = async () => {
 
       <PageSectionContent>
         <PageSectionTitle>Agendamentos futuros</PageSectionTitle>
-        {futureBookings.length > 0 ? (
-          <div className="space-y-3">
-            {futureBookings.map((booking) => {
-              const bookingStartAt = getBookingStartDate(booking);
-              const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
-              const serviceNames =
-                booking.services.length > 0
-                  ? booking.services.map((bookingService) => {
-                      return bookingService.service.name;
-                    })
-                  : [booking.service.name];
-              const bookingTotalLabel = getBookingTotalLabel(
-                booking.totalPriceInCents,
-              );
-
-              return (
-                <Card key={booking.id}>
-                  <CardContent className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant={getStatusBadgeVariant(status)}
-                        className="capitalize"
-                      >
-                        {getStatusLabel(status)}
-                      </Badge>
-                      <Badge variant="secondary" className="gap-1">
-                        <CalendarDays className="size-3" />
-                        {format(bookingStartAt, "dd/MM/yyyy HH:mm", {
-                          locale: ptBR,
-                        })}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-sm font-medium">
-                        <Scissors className="size-4" />
-                        {serviceNames.join(" + ")}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        Barbeiro: {booking.barber?.name ?? "Nao informado"}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {bookingTotalLabel}
-                      </p>
-                      <p className="text-muted-foreground flex items-center gap-2 text-sm">
-                        <UserRound className="size-4" />
-                        {booking.user.name}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                Nenhum agendamento futuro.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <OwnerBookingsList
+          bookings={futureBookings}
+          emptyMessage="Nenhum agendamento futuro."
+        />
       </PageSectionContent>
 
       <PageSectionContent>
         <PageSectionTitle>Agendamentos passados</PageSectionTitle>
-        {pastBookings.length > 0 ? (
-          <div className="space-y-3">
-            {pastBookings.map((booking) => {
-              const bookingStartAt = getBookingStartDate(booking);
-              const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
-              const serviceNames =
-                booking.services.length > 0
-                  ? booking.services.map((bookingService) => {
-                      return bookingService.service.name;
-                    })
-                  : [booking.service.name];
-              const bookingTotalLabel = getBookingTotalLabel(
-                booking.totalPriceInCents,
-              );
-
-              return (
-                <Card key={booking.id}>
-                  <CardContent className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge
-                        variant={getStatusBadgeVariant(status)}
-                        className="capitalize"
-                      >
-                        {getStatusLabel(status)}
-                      </Badge>
-                      <Badge variant="secondary" className="gap-1">
-                        <CalendarDays className="size-3" />
-                        {format(bookingStartAt, "dd/MM/yyyy HH:mm", {
-                          locale: ptBR,
-                        })}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="flex items-center gap-2 text-sm font-medium">
-                        <Scissors className="size-4" />
-                        {serviceNames.join(" + ")}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        Barbeiro: {booking.barber?.name ?? "Nao informado"}
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        {bookingTotalLabel}
-                      </p>
-                      <p className="text-muted-foreground flex items-center gap-2 text-sm">
-                        <UserRound className="size-4" />
-                        {booking.user.name}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <Card>
-            <CardContent>
-              <p className="text-muted-foreground text-sm">
-                Nenhum agendamento passado.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <OwnerBookingsList
+          bookings={pastBookings}
+          emptyMessage="Nenhum agendamento passado."
+        />
       </PageSectionContent>
     </>
   );
