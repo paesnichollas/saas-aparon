@@ -14,10 +14,7 @@ const BarbershopBySlugPage = async ({ params }: PageProps<"/b/[slug]">) => {
 
   return (
     <div>
-      <Header
-        homeHref={`/b/${barbershop.slug}`}
-        showDirectoryLinks={false}
-      />
+      <Header homeHref={`/b/${barbershop.slug}`} />
       <BarbershopDetails barbershop={barbershop} showBackButton={false} />
       <Footer />
     </div>

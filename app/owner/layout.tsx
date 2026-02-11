@@ -13,7 +13,7 @@ const OwnerLayout = async ({
 
   return (
     <div>
-      <Header homeHref="/" showDirectoryLinks={false} />
+      <Header homeHref="/" />
       <PageContainer>
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-lg font-semibold">Area Administrador</h1>

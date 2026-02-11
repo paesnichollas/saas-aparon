@@ -26,24 +26,13 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 
-const categories = [
-  { label: "Cabelo", search: "cabelo" },
-  { label: "Barba", search: "barba" },
-  { label: "Acabamento", search: "acabamento" },
-  { label: "Sobrancelha", search: "sobrancelha" },
-  { label: "Massagem", search: "massagem" },
-  { label: "Hidratacao", search: "hidratacao" },
-];
-
 interface MenuSheetProps {
   homeHref?: string;
-  showDirectoryLinks?: boolean;
   userRole?: UserRole | null;
 }
 
 const MenuSheet = ({
   homeHref = "/",
-  showDirectoryLinks = true,
   userRole = null,
 }: MenuSheetProps) => {
   const { data: session } = authClient.useSession();
@@ -123,63 +112,37 @@ const MenuSheet = ({
             {isLoggedIn && canAccessOwnerPanel && (
               <>
                 <SheetClose asChild>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="h-auto justify-start rounded-none px-5 py-3 text-sm font-medium"
+                  <Link
+                    href="/owner"
+                    className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
                   >
-                    <Link href="/owner">
-                      <ShieldCheck className="size-4" />
-                      Painel Administrativo
-                    </Link>
-                  </Button>
+                    <ShieldCheck className="size-4" />
+                    Painel Administrativo
+                  </Link>
                 </SheetClose>
                 <SheetClose asChild>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    className="h-auto justify-start rounded-none px-5 py-3 text-sm font-medium"
+                  <Link
+                    href="/owner/reports"
+                    className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
                   >
-                    <Link href="/owner/reports">
-                      <BarChart3 className="size-4" />
-                      Relatório
-                    </Link>
-                  </Button>
+                    <BarChart3 className="size-4" />
+                    Relatório
+                  </Link>
                 </SheetClose>
               </>
             )}
             {isLoggedIn && canAccessAdminPanel && (
               <SheetClose asChild>
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="h-auto justify-start rounded-none px-5 py-3 text-sm font-medium"
+                <Link
+                  href="/admin"
+                  className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
                 >
-                  <Link href="/admin">
-                    <Shield className="size-4" />
-                    Painel admin
-                  </Link>
-                </Button>
+                  <Shield className="size-4" />
+                  Painel admin
+                </Link>
               </SheetClose>
             )}
           </div>
-
-          <div className="border-border border-b" />
-
-          {showDirectoryLinks && (
-            <div className="flex flex-col gap-1">
-              {categories.map((category) => (
-                <SheetClose key={category.search} asChild>
-                  <Link
-                    href={`/barbershops?search=${category.search}`}
-                    className="px-5 py-3 text-sm font-medium"
-                  >
-                    {category.label}
-                  </Link>
-                </SheetClose>
-              ))}
-            </div>
-          )}
 
           {isLoggedIn && (
             <>

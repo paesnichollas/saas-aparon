@@ -83,20 +83,20 @@ const ExclusiveBarbershopLanding = ({
             className="object-cover"
             sizes="100vw"
           />
-          <div className="from-background/95 via-background/70 to-background/20 absolute inset-0 bg-gradient-to-t" />
+          <div className="absolute inset-0 bg-gradient-to-t to-transparent pointer-events-none" />
         </div>
 
         <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
-          <div className="animate-in fade-in slide-in-from-bottom-4 space-y-4 duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-4 space-y-4 text-primary-foreground duration-500">
             <div className="space-y-2">
               <h1 className="text-2xl font-bold tracking-tight md:text-4xl">
                 {barbershop.name}
               </h1>
-              <div className="text-muted-foreground flex items-center gap-2 text-sm">
+              <div className="text-primary-foreground/85 flex items-center gap-2 text-sm">
                 <MapPin className="size-4" />
                 <span>{barbershop.address}</span>
               </div>
-              <p className="max-w-3xl text-sm md:text-base">
+              <p className="max-w-3xl text-sm text-primary-foreground/90 md:text-base">
                 {barbershop.description}
               </p>
             </div>
@@ -116,7 +116,11 @@ const ExclusiveBarbershopLanding = ({
                   Reservas indisponíveis
                 </Button>
               )}
-              <Button asChild variant="outline" className="rounded-full">
+              <Button
+                asChild
+                variant="outline"
+                className="rounded-full bg-background text-foreground hover:bg-accent dark:bg-background dark:hover:bg-background"
+              >
                 <Link href="#servicos">Ver Serviços</Link>
               </Button>
               <Button asChild variant="secondary" className="rounded-full">

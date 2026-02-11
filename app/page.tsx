@@ -46,7 +46,7 @@ export default async function Home() {
   if (exclusiveBarbershop) {
     return (
       <div>
-        <Header homeHref="/" showDirectoryLinks={false} />
+        <Header homeHref="/" />
         <ExclusiveBarbershopLanding barbershop={exclusiveBarbershop} />
         <Footer />
       </div>

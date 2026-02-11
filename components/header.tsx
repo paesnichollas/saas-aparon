@@ -9,13 +9,9 @@ import ThemeToggle from "./theme-toggle";
 
 interface HeaderProps {
   homeHref?: string;
-  showDirectoryLinks?: boolean;
 }
 
-const Header = async ({
-  homeHref = "/",
-  showDirectoryLinks = true,
-}: HeaderProps) => {
+const Header = async ({ homeHref = "/" }: HeaderProps) => {
   const userRole = await getUserRoleFromSession();
 
   return (
@@ -38,7 +34,6 @@ const Header = async ({
         </Link>
         <MenuSheet
           homeHref={homeHref}
-          showDirectoryLinks={showDirectoryLinks}
           userRole={userRole}
         />
       </div>

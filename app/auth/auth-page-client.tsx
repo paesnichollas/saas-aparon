@@ -198,12 +198,6 @@ const AuthPage = () => {
           <p className="text-muted-foreground text-center text-xs">
             Ao continuar, voce concorda com os termos da plataforma.
           </p>
-
-          <div className="text-center">
-            <Button asChild variant="link">
-              <Link href="/">Voltar para inicio</Link>
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </main>
