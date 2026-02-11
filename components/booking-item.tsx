@@ -8,7 +8,9 @@ import { Sheet, SheetTrigger } from "./ui/sheet";
 import { BookingWithRelations } from "@/data/bookings";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getBookingStartDate } from "@/lib/booking-calculations";
 import { getBookingStatus } from "@/lib/booking-status";
+import { formatCurrency } from "@/lib/utils";
 import BookingInfoSheet from "./booking-info-sheet";
 
 interface BookingItemProps {
@@ -17,7 +19,16 @@ interface BookingItemProps {
 
 const BookingItem = ({ booking }: BookingItemProps) => {
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
-  const status = getBookingStatus(booking.date, booking.cancelledAt);
+  const bookingStartAt = getBookingStartDate(booking);
+  const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
+  const bookingServiceNames =
+    booking.services.length > 0
+      ? booking.services.map((bookingService) => bookingService.service.name)
+      : [booking.service.name];
+  const bookingTotalLabel =
+    typeof booking.totalPriceInCents === "number"
+      ? `Total: ${formatCurrency(booking.totalPriceInCents)}`
+      : "Total indisponivel";
 
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
@@ -32,7 +43,8 @@ const BookingItem = ({ booking }: BookingItemProps) => {
               <Badge variant="secondary">FINALIZADO</Badge>
             )}
             <div className="flex flex-col gap-2">
-              <p className="font-bold">{booking.service.name}</p>
+              <p className="font-bold">{bookingServiceNames.join(" + ")}</p>
+              <p className="text-muted-foreground text-sm">{bookingTotalLabel}</p>
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
                   <AvatarImage src={booking.barbershop.imageUrl} />
@@ -44,10 +56,10 @@ const BookingItem = ({ booking }: BookingItemProps) => {
 
           <div className="flex h-full w-[6.625rem] flex-col items-center justify-center border-l py-3">
             <p className="text-xs capitalize">
-              {format(booking.date, "MMMM", { locale: ptBR })}
+              {format(bookingStartAt, "MMMM", { locale: ptBR })}
             </p>
-            <p className="text-2xl">{format(booking.date, "dd")}</p>
-            <p className="text-xs">{format(booking.date, "HH:mm")}</p>
+            <p className="text-2xl">{format(bookingStartAt, "dd")}</p>
+            <p className="text-xs">{format(bookingStartAt, "HH:mm")}</p>
           </div>
         </Card>
       </SheetTrigger>

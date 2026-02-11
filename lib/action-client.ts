@@ -1,15 +1,21 @@
 import { createSafeActionClient } from "next-safe-action";
-import { headers } from "next/headers";
-import { auth } from "./auth";
+
+import { getSessionUser, requireAdmin } from "./rbac";
 
 export const actionClient = createSafeActionClient();
 
 export const protectedActionClient = actionClient.use(async ({ next }) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session?.user) {
-    throw new Error("Não autorizado. Por favor, faça login para continuar.");
+  const user = await getSessionUser();
+
+  if (!user) {
+    throw new Error("Nao autorizado. Por favor, faca login para continuar.");
   }
-  return next({ ctx: { user: session.user } });
+
+  return next({ ctx: { user } });
+});
+
+export const adminActionClient = protectedActionClient.use(async ({ next }) => {
+  const adminUser = await requireAdmin({ onUnauthorized: "throw" });
+
+  return next({ ctx: { user: adminUser } });
 });

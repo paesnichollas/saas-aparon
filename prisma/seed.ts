@@ -1,9 +1,17 @@
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { buildPublicSlugCandidate, getPublicSlugBase } from "../lib/public-slug";
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
+
+const openingHoursData = Array.from({ length: 7 }, (_, dayOfWeek) => ({
+  dayOfWeek,
+  openMinute: 9 * 60,
+  closeMinute: 18 * 60,
+  closed: false,
+}));
 
 async function seedDatabase() {
   try {
@@ -63,7 +71,7 @@ async function seedDatabase() {
         name: "Corte de Cabelo",
         description: "Estilo personalizado com as últimas tendências.",
         price: 60.0,
-      imageUrl:
+        imageUrl:
           "https://utfs.io/f/0ddfbd26-a424-43a0-aaf3-c3f1dc6be6d1-1kgxo7.png",
       },
       {
@@ -102,23 +110,53 @@ async function seedDatabase() {
           "https://utfs.io/f/8a457cda-f768-411d-a737-cdb23ca6b9b5-b3pegf.png",
       },
     ];
+    const barberNames = ["Caio", "Rafael", "Lucas"];
 
     // Criar 10 barbearias com nomes e endereços fictícios
     const barbershops = [];
+    const usedPublicSlugs = new Set<string>();
     for (let i = 0; i < 10; i++) {
       const name = creativeNames[i];
       const address = addresses[i];
       const imageUrl = images[i];
+      const publicSlugBase = getPublicSlugBase(name);
+
+      let publicSlugSuffix = 1;
+      let publicSlug = buildPublicSlugCandidate(publicSlugBase, publicSlugSuffix);
+
+      while (usedPublicSlugs.has(publicSlug)) {
+        publicSlugSuffix += 1;
+        publicSlug = buildPublicSlugCandidate(publicSlugBase, publicSlugSuffix);
+      }
+
+      usedPublicSlugs.add(publicSlug);
 
       const barbershop = await prisma.barbershop.create({
         data: {
           name,
+          slug: `${publicSlugBase}-${i + 1}`,
+          publicSlug,
           address,
           imageUrl: imageUrl,
           phones: ["(11) 99999-9999", "(11) 99999-9999"],
+          bookingIntervalMinutes: 30,
           description:
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ac augue ullamcorper, pharetra orci mollis, auctor tellus. Phasellus pharetra erat ac libero efficitur tempus. Donec pretium convallis iaculis. Etiam eu felis sollicitudin, cursus mi vitae, iaculis magna. Nam non erat neque. In hac habitasse platea dictumst. Pellentesque molestie accumsan tellus id laoreet.",
         },
+      });
+
+      await prisma.barbershopOpeningHours.createMany({
+        data: openingHoursData.map((openingHour) => ({
+          ...openingHour,
+          barbershopId: barbershop.id,
+        })),
+      });
+
+      await prisma.barber.createMany({
+        data: barberNames.map((barberName) => ({
+          name: barberName,
+          barbershopId: barbershop.id,
+        })),
       });
 
       for (const service of services) {
@@ -127,6 +165,7 @@ async function seedDatabase() {
             name: service.name,
             description: service.description,
             priceInCents: service.price * 100,
+            durationInMinutes: 30,
             barbershop: {
               connect: {
                 id: barbershop.id,
@@ -139,6 +178,16 @@ async function seedDatabase() {
 
       barbershops.push(barbershop);
     }
+
+    await prisma.appConfig.upsert({
+      where: {
+        id: "app",
+      },
+      update: {},
+      create: {
+        id: "app",
+      },
+    });
 
     // Fechar a conexão com o banco de dados
     await prisma.$disconnect();
