@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 
+import { type UserRole } from "@/generated/prisma/client";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
@@ -37,15 +38,16 @@ const categories = [
 interface MenuSheetProps {
   homeHref?: string;
   showDirectoryLinks?: boolean;
+  userRole?: UserRole | null;
 }
 
 const MenuSheet = ({
   homeHref = "/",
   showDirectoryLinks = true,
+  userRole = null,
 }: MenuSheetProps) => {
   const { data: session } = authClient.useSession();
   const user = session?.user;
-  const userRole = (user as { role?: string } | undefined)?.role;
 
   const handleLogout = async () => {
     const { error } = await authClient.signOut();
@@ -56,8 +58,7 @@ const MenuSheet = ({
   };
 
   const isLoggedIn = Boolean(user);
-  const canAccessOwnerPanel =
-    !userRole || userRole === "OWNER" || userRole === "ADMIN";
+  const canAccessOwnerPanel = userRole === "OWNER";
   const canAccessAdminPanel = userRole === "ADMIN";
 
   return (

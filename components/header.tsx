@@ -2,6 +2,7 @@ import { BotMessageSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { getUserRoleFromSession } from "@/lib/rbac";
 import { Button } from "./ui/button";
 import MenuSheet from "./menu-sheet";
 import ThemeToggle from "./theme-toggle";
@@ -11,10 +12,12 @@ interface HeaderProps {
   showDirectoryLinks?: boolean;
 }
 
-const Header = ({
+const Header = async ({
   homeHref = "/",
   showDirectoryLinks = true,
 }: HeaderProps) => {
+  const userRole = await getUserRoleFromSession();
+
   return (
     <header className="bg-background flex items-center justify-between px-5 py-6">
       <Link href={homeHref}>
@@ -36,6 +39,7 @@ const Header = ({
         <MenuSheet
           homeHref={homeHref}
           showDirectoryLinks={showDirectoryLinks}
+          userRole={userRole}
         />
       </div>
     </header>

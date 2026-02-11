@@ -54,6 +54,12 @@ export const getSessionUser = async (): Promise<SessionUser | null> => {
   return user;
 };
 
+export const getUserRoleFromSession = async (): Promise<UserRole | null> => {
+  const user = await getSessionUser();
+
+  return user?.role ?? null;
+};
+
 interface RequireRoleOptions {
   onUnauthorized?: "redirect" | "throw";
   redirectTo?: string;
