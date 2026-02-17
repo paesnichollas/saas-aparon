@@ -14,6 +14,7 @@ import {
 } from "@/lib/booking-calculations";
 import { hasMinuteIntervalOverlap } from "@/lib/booking-interval";
 import { ACTIVE_BOOKING_PAYMENT_WHERE } from "@/lib/booking-payment";
+import { scheduleBookingNotificationJobs } from "@/lib/notifications/notification-jobs";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { returnValidationErrors } from "next-safe-action";
@@ -279,6 +280,8 @@ export const createBookingCheckoutSession = criticalActionClient
             id: true,
           },
         });
+
+        await scheduleBookingNotificationJobs(booking.id);
 
         return {
           kind: "created" as const,

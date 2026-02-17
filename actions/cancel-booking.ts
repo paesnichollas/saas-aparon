@@ -4,6 +4,7 @@ import { z } from "zod";
 import { protectedActionClient } from "@/lib/action-client";
 import { returnValidationErrors } from "next-safe-action";
 import { prisma } from "@/lib/prisma";
+import { cancelPendingBookingNotificationJobs } from "@/lib/notifications/notification-jobs";
 import { isFuture } from "date-fns";
 import { revalidatePath } from "next/cache";
 import Stripe from "stripe";
@@ -71,6 +72,7 @@ export const cancelBooking = protectedActionClient
         cancelledAt: new Date(),
       },
     });
+    await cancelPendingBookingNotificationJobs(bookingId, "booking_canceled");
     revalidatePath("/");
     revalidatePath("/bookings");
     return cancelledBooking;

@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import {
+  cancelPendingBookingNotificationJobs,
+  scheduleBookingNotificationJobs,
+} from "@/lib/notifications/notification-jobs";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -106,6 +110,8 @@ const confirmCompletedCheckoutSession = async (
     },
   });
 
+  await scheduleBookingNotificationJobs(existingBooking.id);
+
   console.info("[stripeWebhook] Checkout session reconciled as paid.", {
     eventId,
     sessionId: session.id,
@@ -159,6 +165,8 @@ const failCheckoutSessionBooking = async (
       paymentConfirmedAt: null,
     },
   });
+
+  await cancelPendingBookingNotificationJobs(existingBooking.id, "payment_failed");
 
   console.info("[stripeWebhook] Checkout session marked as failed.", {
     eventId,
