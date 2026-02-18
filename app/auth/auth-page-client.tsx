@@ -78,7 +78,7 @@ const AuthPage = () => {
     );
 
     if (normalizedName.length < 2) {
-      toast.error("Informe um nome valido.");
+      toast.error("Informe um nome válido.");
       return;
     }
 
@@ -86,7 +86,7 @@ const AuthPage = () => {
       normalizedPhoneNumber.length < MIN_PHONE_LENGTH ||
       normalizedPhoneNumber.length > MAX_PHONE_LENGTH
     ) {
-      toast.error("Informe um telefone valido.");
+      toast.error("Informe um telefone válido.");
       return;
     }
 
@@ -126,7 +126,7 @@ const AuthPage = () => {
       }
 
       toast.error(
-        responseErrorMessage ?? "Nao foi possivel autenticar com nome e telefone.",
+        responseErrorMessage ?? "Não foi possível autenticar com nome e telefone.",
       );
       return;
     }
@@ -228,7 +228,7 @@ const AuthPage = () => {
           </form>
 
           <p className="text-muted-foreground text-center text-xs">
-            Ao continuar, voce concorda com os termos da plataforma.
+            Ao continuar, você concorda com os termos da plataforma.
           </p>
         </CardContent>
       </Card>

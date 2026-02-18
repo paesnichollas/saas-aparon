@@ -47,12 +47,12 @@ const OwnerReportsPage = async ({ searchParams }: OwnerReportsPageProps) => {
     if (barbershopOptions.length === 0) {
       return (
         <PageSectionContent>
-          <PageSectionTitle>Relatorio</PageSectionTitle>
+          <PageSectionTitle>Relatório</PageSectionTitle>
           <Card>
             <CardHeader>
               <CardTitle>Nenhuma barbearia cadastrada</CardTitle>
               <CardDescription>
-                Cadastre uma barbearia para gerar relatorios no painel.
+                Cadastre uma barbearia para gerar relatórios no painel.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -69,7 +69,7 @@ const OwnerReportsPage = async ({ searchParams }: OwnerReportsPageProps) => {
 
     return (
       <PageSectionContent>
-        <PageSectionTitle>Relatorio</PageSectionTitle>
+        <PageSectionTitle>Relatório</PageSectionTitle>
         <OwnerReportsCard
           isAdmin
           initialBarbershopId={initialBarbershopId}
@@ -85,7 +85,7 @@ const OwnerReportsPage = async ({ searchParams }: OwnerReportsPageProps) => {
   if (!ownerBarbershopId) {
     return (
       <PageSectionContent>
-        <PageSectionTitle>Relatorio</PageSectionTitle>
+        <PageSectionTitle>Relatório</PageSectionTitle>
         <Card>
           <CardHeader>
             <CardTitle>Nenhuma barbearia vinculada</CardTitle>
@@ -108,7 +108,7 @@ const OwnerReportsPage = async ({ searchParams }: OwnerReportsPageProps) => {
 
   return (
     <PageSectionContent>
-      <PageSectionTitle>Relatorio</PageSectionTitle>
+      <PageSectionTitle>Relatório</PageSectionTitle>
       <OwnerReportsCard
         isAdmin={false}
         initialBarbershopId={ownerBarbershopId}

@@ -7,8 +7,8 @@ import { requireAdminWithCompleteProfile } from "@/lib/rbac";
 const adminNavigationItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/barbershops", label: "Barbearias" },
-  { href: "/admin/owners", label: "Owners e usuarios" },
-  { href: "/admin/bookings", label: "Reservas" },
+  { href: "/admin/owners", label: "Owners e usuários" },
+  { href: "/admin/bookings", label: "Agendamentos" },
 ];
 
 const AdminLayout = async ({
@@ -27,7 +27,7 @@ const AdminLayout = async ({
             <Badge variant="secondary">Acesso total</Badge>
           </div>
           <Link href="/" className="text-sm font-medium underline-offset-4 hover:underline">
-            Voltar para inicio
+            Voltar para início
           </Link>
         </div>
       </header>

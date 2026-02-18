@@ -53,7 +53,7 @@ export const updateService = protectedActionClient
 
       if (!ownerBarbershop) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia do owner nao encontrada."],
+          _errors: ["Barbearia do owner não encontrada."],
         });
       }
 

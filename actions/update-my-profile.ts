@@ -13,9 +13,9 @@ const MIN_NAME_LENGTH = 2;
 const MIN_PHONE_LENGTH = 10;
 const MAX_PHONE_LENGTH = 11;
 const PHONE_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Ja ha um usuario cadastrado com esse telefone.";
+  "Já há um usuário cadastrado com esse telefone.";
 const CONTACT_EMAIL_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Ja ha um usuario cadastrado com esse email.";
+  "Já há um usuário cadastrado com esse email.";
 
 const inputSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -70,7 +70,7 @@ export const updateMyProfile = protectedActionClient
     });
 
     if (!currentUser) {
-      throw new Error("Nao autorizado. Por favor, faca login para continuar.");
+      throw new Error("Não autorizado. Por favor, faça login para continuar.");
     }
 
     const provider = await resolveAndPersistUserProvider({
@@ -111,7 +111,7 @@ export const updateMyProfile = protectedActionClient
     } = {};
 
     if (normalizedName.length < MIN_NAME_LENGTH) {
-      validationErrors.name = { _errors: ["Informe um nome valido."] };
+      validationErrors.name = { _errors: ["Informe um nome válido."] };
     }
 
     if (requiresPhone) {
@@ -123,15 +123,15 @@ export const updateMyProfile = protectedActionClient
           phoneDigits.length > MAX_PHONE_LENGTH ||
           !normalizedPhoneFromInput
         ) {
-          validationErrors.phone = { _errors: ["Informe um telefone valido."] };
+          validationErrors.phone = { _errors: ["Informe um telefone válido."] };
         }
       } else if (!nextPhone) {
-        validationErrors.phone = { _errors: ["Informe um telefone valido."] };
+        validationErrors.phone = { _errors: ["Informe um telefone válido."] };
       }
     }
 
     if (canEditContactEmail && nextContactEmail && !isValidContactEmail(nextContactEmail)) {
-      validationErrors.contactEmail = { _errors: ["Informe um email valido."] };
+      validationErrors.contactEmail = { _errors: ["Informe um email válido."] };
     }
 
     if (Object.keys(validationErrors).length > 0) {
@@ -257,7 +257,7 @@ export const updateMyProfile = protectedActionClient
         }
 
         returnValidationErrors(inputSchema, {
-          _errors: ["Ja existe um usuario com esses dados."],
+          _errors: ["Já existe um usuário com esses dados."],
         });
       }
 

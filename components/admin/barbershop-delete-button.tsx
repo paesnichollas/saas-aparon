@@ -74,8 +74,8 @@ const BarbershopDeleteButton = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir barbearia</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acao remove definitivamente &quot;{barbershopName}&quot; apenas se nao
-            houver dependencias. Caso existam, o sistema bloqueara a exclusao e
+            Esta ação remove definitivamente &quot;{barbershopName}&quot; apenas se não
+            houver dependências. Caso existam, o sistema bloqueara a exclusao e
             orientara inativar.
           </AlertDialogDescription>
         </AlertDialogHeader>

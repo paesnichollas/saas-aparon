@@ -14,7 +14,7 @@ const resolveUploadActor = async (request: Request) => {
   });
 
   if (!session?.user?.id) {
-    throw new UploadThingError("Nao autorizado.");
+    throw new UploadThingError("Não autorizado.");
   }
 
   const actor = await prisma.user.findUnique({
@@ -28,7 +28,7 @@ const resolveUploadActor = async (request: Request) => {
   });
 
   if (!actor) {
-    throw new UploadThingError("Nao autorizado.");
+    throw new UploadThingError("Não autorizado.");
   }
 
   return actor;

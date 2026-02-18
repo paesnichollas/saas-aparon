@@ -63,7 +63,7 @@ const BarbershopDetails = ({
         </div>
 
         <div className="flex flex-col gap-3 px-5">
-          <PageSectionTitle>Sobre Nos</PageSectionTitle>
+          <PageSectionTitle>Sobre nós</PageSectionTitle>
           <p className="text-sm">{barbershop.description}</p>
         </div>
 
@@ -72,7 +72,7 @@ const BarbershopDetails = ({
         </div>
 
         <div className="flex flex-col gap-3 px-5">
-          <PageSectionTitle>Reserva</PageSectionTitle>
+          <PageSectionTitle>Agendamento</PageSectionTitle>
           {barbershop.barbers.length > 0 ? (
             <BookingSheet
               barbershop={barbershop}
@@ -91,7 +91,7 @@ const BarbershopDetails = ({
         </div>
 
         <div className="flex flex-col gap-3 px-5">
-          <PageSectionTitle>Servicos</PageSectionTitle>
+          <PageSectionTitle>Serviços</PageSectionTitle>
           <div className="flex flex-col gap-3">
             {barbershop.services.map((service) => (
               <ServiceItem

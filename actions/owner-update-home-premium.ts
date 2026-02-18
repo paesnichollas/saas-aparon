@@ -52,20 +52,20 @@ export const ownerUpdateHomePremium = protectedActionClient
 
     if (!barbershop) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbearia do owner nao encontrada."],
+        _errors: ["Barbearia do owner não encontrada."],
       });
     }
 
     if (!barbershop.exclusiveBarber) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Personalizacao disponivel apenas para barbearias exclusivas."],
+        _errors: ["Personalizacao disponível apenas para barbearias exclusivas."],
       });
     }
 
     const normalizedChips = normalizeChips(chips);
     if (normalizedChips.length === 0) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Informe pelo menos uma tag valida."],
+        _errors: ["Informe pelo menos uma tag válida."],
       });
     }
 

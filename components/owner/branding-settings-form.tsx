@@ -102,7 +102,7 @@ const BrandingSettingsForm = ({
     }
 
     if (!slugPreview) {
-      toast.error("Informe um slug valido para a URL publica.");
+      toast.error("Informe um slug válido para a URL pública.");
       return;
     }
 
@@ -114,7 +114,7 @@ const BrandingSettingsForm = ({
     }
 
     if (parsedPhonesDigits.some((phoneDigits) => !isValidPhoneDigits(phoneDigits))) {
-      toast.error("Informe telefones validos com DDD (10 ou 11 digitos).");
+      toast.error("Informe telefones válidos com DDD (10 ou 11 digitos).");
       return;
     }
 
@@ -138,12 +138,12 @@ const BrandingSettingsForm = ({
     });
 
     if (result.validationErrors) {
-      toast.error(result.validationErrors._errors?.[0] ?? "Dados invalidos.");
+      toast.error(result.validationErrors._errors?.[0] ?? "Dados inválidos.");
       return;
     }
 
     if (result.serverError || !result.data) {
-      toast.error("Erro ao salvar configuracoes. Tente novamente.");
+      toast.error("Erro ao salvar configurações. Tente novamente.");
       return;
     }
 
@@ -162,7 +162,7 @@ const BrandingSettingsForm = ({
       <CardHeader>
         <CardTitle>Dados da barbearia</CardTitle>
         <CardDescription>
-          Atualize nome, descricao, endereco, contato e banner da barbearia.
+          Atualize nome, descrição, endereço, contato e banner da barbearia.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -182,7 +182,7 @@ const BrandingSettingsForm = ({
 
           <div className="space-y-2">
             <label htmlFor="barbershop-description" className="text-sm font-medium">
-              Descricao
+              Descrição
             </label>
             <Textarea
               id="barbershop-description"
@@ -196,7 +196,7 @@ const BrandingSettingsForm = ({
 
           <div className="space-y-2">
             <label htmlFor="barbershop-address" className="text-sm font-medium">
-              Endereco
+              Endereço
             </label>
             <Input
               id="barbershop-address"
@@ -232,14 +232,14 @@ const BrandingSettingsForm = ({
             previewAlt={nameInput.trim() || "Preview do banner"}
             barbershopId={barbershopId}
             disabled={isPending}
-            helperText="O banner e enviado via UploadThing e salvo como URL."
+            helperText="O banner é enviado via UploadThing é salvo como URL."
             emptyText="Sem banner para preview."
             onUploadingChange={setIsUploadingBackgroundImage}
           />
 
           <div className="space-y-2">
             <label htmlFor="barbershop-slug" className="text-sm font-medium">
-              Slug publico
+              Slug público
             </label>
             <Input
               id="barbershop-slug"
@@ -249,7 +249,7 @@ const BrandingSettingsForm = ({
               disabled={isFormBusy}
             />
             <p className="text-muted-foreground text-xs">
-              Esse slug e usado na rota por slug da barbearia.
+              Esse slug é usado na rota por slug da barbearia.
             </p>
           </div>
 

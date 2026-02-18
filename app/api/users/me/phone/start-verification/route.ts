@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { PHONE_VERIFICATION_DISABLED_CODE } from "@/lib/profile-completion";
 
 const PHONE_VERIFICATION_DISABLED_ERROR_MESSAGE =
-  "Verificacao de telefone por codigo foi desativada.";
+  "Verificação de telefone por código foi desativada.";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,7 @@ export async function POST() {
   if (!session?.user?.id) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );

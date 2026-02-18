@@ -163,9 +163,9 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Reservas</CardTitle>
+          <CardTitle>Agendamentos</CardTitle>
           <CardDescription>
-            Lista global de reservas com filtros por barbearia, periodo e status.
+            Lista global de agendamentos com filtros por barbearia, período e status.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -217,7 +217,7 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
                 <TableHead>Data</TableHead>
                 <TableHead>Barbearia</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Servico</TableHead>
+                <TableHead>Serviço</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -246,7 +246,7 @@ const AdminBookingsPage = async ({ searchParams }: AdminBookingsPageProps) => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="text-muted-foreground text-sm">
-                    Nenhuma reserva encontrada.
+                    Nenhum agendamento encontrado.
                   </TableCell>
                 </TableRow>
               )}

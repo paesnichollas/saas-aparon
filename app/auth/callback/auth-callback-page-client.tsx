@@ -57,7 +57,7 @@ const AuthCallbackPage = () => {
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="flex items-center gap-2 text-sm">
         <Loader2 className="size-4 animate-spin" />
-        Finalizando autenticacao...
+        Finalizando autenticação...
       </div>
     </main>
   );

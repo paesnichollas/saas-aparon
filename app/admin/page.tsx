@@ -13,24 +13,24 @@ const adminCards = [
     href: "/admin/barbershops",
     title: "Barbearias",
     description:
-      "Listagem global, detalhes e edicao dos campos principais das barbearias.",
+      "Listagem global, detalhes e edição dos campos principais das barbearias.",
   },
   {
     href: "/admin/owners",
-    title: "Owners e usuarios",
+    title: "Owners e usuários",
     description:
-      "Controle de papeis e vinculacao de ownership por barbearia.",
+      "Controle de papéis e vinculação de ownership por barbearia.",
   },
   {
     href: "/admin/bookings",
-    title: "Reservas",
-    description: "Consulta de reservas com filtros por barbearia, periodo e status.",
+    title: "Agendamentos",
+    description: "Consulta de agendamentos com filtros por barbearia, período e status.",
   },
   {
     href: "/owner/reports",
-    title: "Relatorio",
+    title: "Relatório",
     description:
-      "Acompanhe pedidos e faturamento por barbearia no periodo semanal ou mensal.",
+      "Acompanhe pedidos e faturamento por barbearia no período semanal ou mensal.",
   },
 ];
 

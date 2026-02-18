@@ -136,7 +136,7 @@ const getDateTimePartsInTimeZone = (date: Date, timeZone: string) => {
     Number.isNaN(minute) ||
     Number.isNaN(second)
   ) {
-    throw new Error("Nao foi possivel obter partes de data/hora no timezone.");
+    throw new Error("Não foi possível obter partes de data/hora no timezone.");
   }
 
   return { year, month, day, hour, minute, second };
@@ -159,7 +159,7 @@ const getTimeZoneOffsetInMinutes = (date: Date, timeZone: string) => {
 
 const zonedDateTimeToUtc = (parts: ZonedDateTimeParts, timeZone: string): Date => {
   if (!isValidZonedDateTimeParts(parts)) {
-    throw new Error("Partes de data/hora invalidas.");
+    throw new Error("Partes de data/hora inválidas.");
   }
 
   const utcGuess = Date.UTC(
@@ -220,7 +220,7 @@ export const getBookingCurrentYear = (date = new Date()) => {
   const parsedYear = Number(dateKey.slice(0, 4));
 
   if (Number.isNaN(parsedYear)) {
-    throw new Error("Nao foi possivel calcular o ano atual no timezone de reservas.");
+    throw new Error("Não foi possível calcular o ano atual no timezone de agendamentos.");
   }
 
   return parsedYear;
@@ -231,7 +231,7 @@ export const getBookingCurrentMonth = (date = new Date()) => {
   const parsedMonth = Number(dateKey.slice(5, 7));
 
   if (Number.isNaN(parsedMonth)) {
-    throw new Error("Nao foi possivel calcular o mes atual no timezone de reservas.");
+    throw new Error("Não foi possível calcular o mês atual no timezone de agendamentos.");
   }
 
   return parsedMonth;
@@ -239,7 +239,7 @@ export const getBookingCurrentMonth = (date = new Date()) => {
 
 export const getBookingYearBounds = (year: number) => {
   if (!Number.isInteger(year) || year < 1 || year > 9_998) {
-    throw new Error("Ano de reservas invalido.");
+    throw new Error("Ano de agendamentos inválido.");
   }
 
   const start = zonedDateTimeToUtc(
@@ -372,22 +372,22 @@ export const getBookingDayBounds = (date: Date) => {
   const dateKey = getBookingDateKey(date);
   const start = parseBookingDateOnly(dateKey);
   if (!start) {
-    throw new Error("Nao foi possivel calcular o inicio do dia de reserva.");
+    throw new Error("Não foi possível calcular o início do dia de agendamento.");
   }
 
   const nextDateKey = addDaysToDateKey(dateKey, 1);
   if (!nextDateKey) {
-    throw new Error("Nao foi possivel calcular o proximo dia da reserva.");
+    throw new Error("Não foi possível calcular o próximo dia do agendamento.");
   }
 
   const endExclusive = parseBookingDateOnly(nextDateKey);
   if (!endExclusive) {
-    throw new Error("Nao foi possivel calcular o fim do dia de reserva.");
+    throw new Error("Não foi possível calcular o fim do dia de agendamento.");
   }
 
   const dayOfWeek = getBookingDayOfWeekFromDateKey(dateKey);
   if (dayOfWeek === null) {
-    throw new Error("Nao foi possivel calcular o dia da semana da reserva.");
+    throw new Error("Não foi possível calcular o dia da semana do agendamento.");
   }
 
   return {

@@ -48,7 +48,7 @@ export const createBarber = protectedActionClient
 
     if (!barbershop) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbearia nao encontrada ou sem permissao de edicao."],
+        _errors: ["Barbearia não encontrada ou sem permissão de edição."],
       });
     }
 
@@ -56,7 +56,7 @@ export const createBarber = protectedActionClient
 
     if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
       returnValidationErrors(inputSchema, {
-        _errors: ["A imagem enviada e invalida."],
+        _errors: ["A imagem enviada é inválida."],
       });
     }
 

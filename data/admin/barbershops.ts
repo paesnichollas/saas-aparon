@@ -98,7 +98,7 @@ const mapPrismaKnownErrorToPayload = (
   if (error.code === "P2002") {
     if (field === "slug" || field === "publicSlug") {
       return {
-        message: "Slug ja esta em uso. Tente outro slug.",
+        message: "Slug já está em uso. Tente outro slug.",
         code: "UNIQUE",
         field,
       };
@@ -106,14 +106,14 @@ const mapPrismaKnownErrorToPayload = (
 
     if (field === "ownerId") {
       return {
-        message: "Este owner ja esta vinculado a outra barbearia.",
+        message: "Este owner já está vinculado a outra barbearia.",
         code: "UNIQUE",
         field,
       };
     }
 
     return {
-      message: "Ja existe um registro com os mesmos dados unicos.",
+      message: "Já existe um registro com os mesmos dados unicos.",
       code: "UNIQUE",
       field,
     };
@@ -122,7 +122,7 @@ const mapPrismaKnownErrorToPayload = (
   if (error.code === "P2003") {
     if (field === "ownerId") {
       return {
-        message: "OwnerID invalido ou usuario nao encontrado.",
+        message: "OwnerID inválido ou usuário não encontrado.",
         code: "FK",
         field: "ownerId",
       };
@@ -137,7 +137,7 @@ const mapPrismaKnownErrorToPayload = (
 
   if (error.code === "P2025") {
     return {
-      message: "Registro nao encontrado para concluir a operacao.",
+      message: "Registro não encontrado para concluir a operação.",
       code: "NOT_FOUND",
       field,
     };
@@ -285,7 +285,7 @@ const normalizePhones = (phones: string[] | undefined) => {
 
   if (normalizedPhones.length === 0) {
     throw new AdminBarbershopError({
-      message: "Informe pelo menos um telefone valido.",
+      message: "Informe pelo menos um telefone válido.",
       code: "VALIDATION",
       field: "phones",
     });
@@ -319,7 +319,7 @@ const normalizeRequiredText = ({
 
   if (normalizedValue.length < min || normalizedValue.length > max) {
     throw new AdminBarbershopError({
-      message: `Campo ${fieldName} invalido.`,
+      message: `Campo ${fieldName} inválido.`,
       code: "VALIDATION",
       field: fieldName,
     });
@@ -377,7 +377,7 @@ const resolveUniqueBarbershopFieldValue = async ({
   }
 
   throw new AdminBarbershopError({
-    message: "Nao foi possivel gerar um slug unico.",
+    message: "Não foi possível gerar um slug unico.",
     code: "UNIQUE",
     field,
   });
@@ -437,7 +437,7 @@ const assertTargetOwner = async (targetOwnerId: string) => {
 
   if (!targetOwner) {
     throw new AdminBarbershopError({
-      message: "OwnerID invalido ou usuario nao encontrado.",
+      message: "OwnerID inválido ou usuário não encontrado.",
       code: "FK",
       field: "ownerId",
     });
@@ -445,7 +445,7 @@ const assertTargetOwner = async (targetOwnerId: string) => {
 
   if (targetOwner.role === "ADMIN") {
     throw new AdminBarbershopError({
-      message: "Nao vincule um ADMIN como owner por esta tela.",
+      message: "Não vincule um ADMIN como owner por esta tela.",
       code: "VALIDATION",
       field: "ownerId",
     });
@@ -623,7 +623,7 @@ export const adminGetBarbershop = async (barbershopId: string) => {
   const normalizedBarbershopId = barbershopId.trim();
 
   if (!normalizedBarbershopId) {
-    throw new Error("Barbearia invalida.");
+    throw new Error("Barbearia inválida.");
   }
 
   return prisma.barbershop.findUnique({
@@ -693,7 +693,7 @@ export const adminCreateBarbershop = async ({
 
   if (!normalizedPhones) {
     throw new AdminBarbershopError({
-      message: "Informe pelo menos um telefone valido.",
+      message: "Informe pelo menos um telefone válido.",
       code: "VALIDATION",
       field: "phones",
     });
@@ -701,7 +701,7 @@ export const adminCreateBarbershop = async ({
 
   if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
     throw new AdminBarbershopError({
-      message: "A imagem da barbearia e invalida.",
+      message: "A imagem da barbearia é inválida.",
       code: "VALIDATION",
       field: "imageUrl",
     });
@@ -709,7 +709,7 @@ export const adminCreateBarbershop = async ({
 
   if (normalizedLogoUrl && !hasValidImageUrl(normalizedLogoUrl)) {
     throw new AdminBarbershopError({
-      message: "A logo da barbearia e invalida.",
+      message: "A logo da barbearia é inválida.",
       code: "VALIDATION",
       field: "logoUrl",
     });
@@ -894,7 +894,7 @@ export const adminUpdateBarbershop = async ({
 
   if (!normalizedBarbershopId || !normalizedPhones) {
     throw new AdminBarbershopError({
-      message: "Dados invalidos para atualizacao da barbearia.",
+      message: "Dados inválidos para atualização da barbearia.",
       code: "VALIDATION",
       field: "barbershopId",
     });
@@ -902,7 +902,7 @@ export const adminUpdateBarbershop = async ({
 
   if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
     throw new AdminBarbershopError({
-      message: "A imagem da barbearia e invalida.",
+      message: "A imagem da barbearia é inválida.",
       code: "VALIDATION",
       field: "imageUrl",
     });
@@ -910,7 +910,7 @@ export const adminUpdateBarbershop = async ({
 
   if (normalizedLogoUrl && !hasValidImageUrl(normalizedLogoUrl)) {
     throw new AdminBarbershopError({
-      message: "A logo da barbearia e invalida.",
+      message: "A logo da barbearia é inválida.",
       code: "VALIDATION",
       field: "logoUrl",
     });
@@ -930,7 +930,7 @@ export const adminUpdateBarbershop = async ({
 
   if (!currentBarbershop) {
     throw new AdminBarbershopError({
-      message: "Barbearia nao encontrada.",
+      message: "Barbearia não encontrada.",
       code: "NOT_FOUND",
       field: "barbershopId",
     });
@@ -1013,7 +1013,7 @@ export const adminSetBarbershopActive = async ({
   const normalizedBarbershopId = barbershopId.trim();
 
   if (!normalizedBarbershopId) {
-    throw new Error("Barbearia invalida.");
+    throw new Error("Barbearia inválida.");
   }
 
   const updateResult = await prisma.barbershop.updateMany({
@@ -1026,7 +1026,7 @@ export const adminSetBarbershopActive = async ({
   });
 
   if (updateResult.count === 0) {
-    throw new Error("Barbearia nao encontrada.");
+    throw new Error("Barbearia não encontrada.");
   }
 
   const barbershop = await prisma.barbershop.findUnique({
@@ -1042,7 +1042,7 @@ export const adminSetBarbershopActive = async ({
   });
 
   if (!barbershop) {
-    throw new Error("Barbearia nao encontrada.");
+    throw new Error("Barbearia não encontrada.");
   }
 
   return barbershop;
@@ -1073,7 +1073,7 @@ const buildDeleteDependencyError = ({
   }
 
   if (dependencies.services > 0) {
-    reasons.push(`${dependencies.services} servico(s)`);
+    reasons.push(`${dependencies.services} serviço(s)`);
   }
 
   if (dependencies.barbers > 0) {
@@ -1085,18 +1085,18 @@ const buildDeleteDependencyError = ({
   }
 
   if (dependencies.users > 0) {
-    reasons.push(`${dependencies.users} usuario(s) vinculado(s)`);
+    reasons.push(`${dependencies.users} usuário(s) vinculado(s)`);
   }
 
   if (dependencies.currentUsers > 0) {
-    reasons.push(`${dependencies.currentUsers} contexto(s) ativo(s) de usuario`);
+    reasons.push(`${dependencies.currentUsers} contexto(s) ativo(s) de usuário`);
   }
 
   if (reasons.length === 0) {
     return null;
   }
 
-  return `Nao e possivel excluir esta barbearia porque existem dependencias: ${reasons.join(", ")}. Inative a barbearia em vez de excluir.`;
+  return `Não é possível excluir esta barbearia porque existem dependências: ${reasons.join(", ")}. Inative a barbearia em vez de excluir.`;
 };
 
 export const adminDeleteBarbershopSafely = async (barbershopId: string) => {
@@ -1105,7 +1105,7 @@ export const adminDeleteBarbershopSafely = async (barbershopId: string) => {
   const normalizedBarbershopId = barbershopId.trim();
 
   if (!normalizedBarbershopId) {
-    throw new Error("Barbearia invalida.");
+    throw new Error("Barbearia inválida.");
   }
 
   const barbershop = await prisma.barbershop.findUnique({
@@ -1131,7 +1131,7 @@ export const adminDeleteBarbershopSafely = async (barbershopId: string) => {
   });
 
   if (!barbershop) {
-    throw new Error("Barbearia nao encontrada.");
+    throw new Error("Barbearia não encontrada.");
   }
 
   const dependencyError = buildDeleteDependencyError({

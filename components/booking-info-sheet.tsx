@@ -86,7 +86,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
   return (
     <SheetContent className="flex flex-col overflow-y-auto p-0">
       <SheetHeader className="flex flex-row items-center justify-between border-b px-5 py-6">
-        <SheetTitle>Informações da Reserva</SheetTitle>
+        <SheetTitle>Informações do Agendamento</SheetTitle>
       </SheetHeader>
 
       <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -165,19 +165,19 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="flex-1 rounded-full">
-                Cancelar Reserva
+                Cancelar Agendamento
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Cancelar Reserva</AlertDialogTitle>
+                <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja cancelar esta reserva? Esta ação não
+                  Tem certeza que deseja cancelar este agendamento? Esta ação não
                   pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Não, manter reserva</AlertDialogCancel>
+                <AlertDialogCancel>Não, manter agendamento</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleCancelBooking}
                   disabled={isCancelling}

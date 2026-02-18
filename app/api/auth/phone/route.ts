@@ -113,7 +113,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Dados de autenticacao invalidos.",
+        error: "Dados de autenticação inválidos.",
       },
       { status: 400 },
     );
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
   if (!isValidPhoneNumber(normalizedPhoneNumber) || !normalizedPhoneE164) {
     return NextResponse.json(
       {
-        error: "Informe um telefone valido.",
+        error: "Informe um telefone válido.",
       },
       { status: 400 },
     );
@@ -234,7 +234,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        error: "Nao foi possivel autenticar com nome e telefone.",
+        error: "Não foi possível autenticar com nome e telefone.",
       },
       { status: 401 },
     );

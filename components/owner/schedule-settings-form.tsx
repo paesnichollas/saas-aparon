@@ -168,7 +168,7 @@ const ScheduleSettingsForm = ({
       <CardHeader>
         <CardTitle>Configurações da agenda</CardTitle>
         <CardDescription>
-          Defina horario de funcionamento por dia da semana.
+          Defina horário de funcionamento por dia da semana.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -147,7 +147,7 @@ const ImageUploader = ({
         console.error("UploadThing startUpload resolved without image URL.", {
           uploadedFiles,
         });
-        toast.error("Nao foi possivel obter a URL da imagem enviada.");
+        toast.error("Não foi possível obter a URL da imagem enviada.");
       }
     } catch {
       if (!hasUploadErrorRef.current) {

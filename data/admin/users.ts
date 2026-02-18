@@ -131,7 +131,7 @@ const ensureCanChangeFromAdminRole = async ({
   }
 
   if (targetUserId === actorUserId) {
-    throw new Error("Nao e permitido remover seu proprio papel de ADMIN.");
+    throw new Error("Não é permitido remover seu próprio papel de ADMIN.");
   }
 
   const adminCount = await prisma.user.count({
@@ -141,7 +141,7 @@ const ensureCanChangeFromAdminRole = async ({
   });
 
   if (adminCount <= 1) {
-    throw new Error("Nao e permitido remover o ultimo ADMIN do sistema.");
+    throw new Error("Não é permitido remover o último ADMIN do sistema.");
   }
 };
 
@@ -154,12 +154,12 @@ export const adminUpdateUserRole = async ({
   const normalizedUserId = userId.trim();
 
   if (!normalizedUserId) {
-    throw new Error("Usuario invalido.");
+    throw new Error("Usuário inválido.");
   }
 
   if (role === "OWNER") {
     throw new Error(
-      "Use a promocao com barbearia para mover um usuario para OWNER.",
+      "Use a promoção com barbearia para mover um usuário para OWNER.",
     );
   }
 
@@ -180,7 +180,7 @@ export const adminUpdateUserRole = async ({
   });
 
   if (!targetUser) {
-    throw new Error("Usuario nao encontrado.");
+    throw new Error("Usuário não encontrado.");
   }
 
   if (targetUser.role === "ADMIN") {
@@ -219,7 +219,7 @@ export const adminUpdateUserRole = async ({
     });
 
     if (!updatedUser) {
-      throw new Error("Falha ao buscar usuario atualizado.");
+      throw new Error("Falha ao buscar usuário atualizado.");
     }
 
     return updatedUser;
@@ -283,7 +283,7 @@ export const adminPromoteToOwnerAndAssignBarbershop = async ({
   const normalizedBarbershopId = barbershopId.trim();
 
   if (!normalizedUserId || !normalizedBarbershopId) {
-    throw new Error("Usuario e barbearia sao obrigatorios.");
+    throw new Error("Usuário e barbearia são obrigatórios.");
   }
 
   return promoteUserToOwnerByAdmin({
@@ -314,7 +314,7 @@ const getBarbershopById = async (
   });
 
   if (!barbershop) {
-    throw new Error("Barbearia nao encontrada.");
+    throw new Error("Barbearia não encontrada.");
   }
 
   return barbershop;
@@ -328,15 +328,15 @@ export const adminDisableBarbershopAccess = async ({
 
   const normalizedActorUserId = normalizeRequiredId(
     actorUserId,
-    "Administrador invalido.",
+    "Administrador inválido.",
   );
   const normalizedBarbershopId = normalizeRequiredId(
     barbershopId,
-    "Barbearia invalida.",
+    "Barbearia inválida.",
   );
 
   if (adminUser.id !== normalizedActorUserId) {
-    throw new Error("Administrador invalido.");
+    throw new Error("Administrador inválido.");
   }
 
   return prisma.$transaction(async (tx) => {
@@ -369,15 +369,15 @@ export const adminEnableBarbershopAccess = async ({
 
   const normalizedActorUserId = normalizeRequiredId(
     actorUserId,
-    "Administrador invalido.",
+    "Administrador inválido.",
   );
   const normalizedBarbershopId = normalizeRequiredId(
     barbershopId,
-    "Barbearia invalida.",
+    "Barbearia inválida.",
   );
 
   if (adminUser.id !== normalizedActorUserId) {
-    throw new Error("Administrador invalido.");
+    throw new Error("Administrador inválido.");
   }
 
   return prisma.$transaction(async (tx) => {

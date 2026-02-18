@@ -67,18 +67,18 @@ const WhatsAppAutomationSettingsCard = ({
         } | null;
 
         if (responseBody?.code === "FEATURE_NOT_AVAILABLE") {
-          toast.error("Recurso disponivel somente no plano PRO.");
+          toast.error("Recurso disponível somente no plano PRO.");
           return;
         }
 
         toast.error(
           responseBody?.error ??
-            "Falha ao atualizar configuracoes do WhatsApp.",
+            "Falha ao atualizar configurações do WhatsApp.",
         );
         return;
       }
 
-      toast.success("Configuracoes de WhatsApp atualizadas.");
+      toast.success("Configurações de WhatsApp atualizadas.");
     } finally {
       setIsPending(false);
     }
@@ -88,9 +88,9 @@ const WhatsAppAutomationSettingsCard = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>WhatsApp Automatico (Plano PRO)</CardTitle>
+          <CardTitle>WhatsApp Automático (Plano PRO)</CardTitle>
           <CardDescription>
-            Este recurso esta disponivel apenas para barbearias no plano PRO.
+            Este recurso esta disponível apenas para barbearias no plano PRO.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -105,7 +105,7 @@ const WhatsAppAutomationSettingsCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>WhatsApp Automatico</CardTitle>
+        <CardTitle>WhatsApp Automático</CardTitle>
         <CardDescription>
           Controle os tipos de mensagens automaticas enviadas para seus
           clientes.
@@ -117,7 +117,7 @@ const WhatsAppAutomationSettingsCard = ({
             htmlFor="send-booking-confirmation"
             className="text-sm font-medium"
           >
-            Confirmação da reserva
+            Confirmação do agendamento
           </label>
           <Switch
             id="send-booking-confirmation"

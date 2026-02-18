@@ -36,7 +36,7 @@ const ChatPage = () => {
           return response;
         }
 
-        let message = "Nao foi possivel iniciar o chat.";
+        let message = "Não foi possível iniciar o chat.";
 
         try {
           const payload = (await response.json()) as { error?: unknown };

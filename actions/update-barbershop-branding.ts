@@ -61,7 +61,7 @@ export const updateBarbershopBranding = protectedActionClient
 
       if (!barbershop) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia nao encontrada ou sem permissao de edicao."],
+          _errors: ["Barbearia não encontrada ou sem permissão de edição."],
         });
       }
 
@@ -79,7 +79,7 @@ export const updateBarbershopBranding = protectedActionClient
 
       if (existingBarbershopWithSlug) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Slug ja esta em uso por outra barbearia."],
+          _errors: ["Slug já está em uso por outra barbearia."],
         });
       }
 
@@ -94,7 +94,7 @@ export const updateBarbershopBranding = protectedActionClient
 
       if (normalizedImageUrl.length === 0 || !hasValidImageUrl(normalizedImageUrl)) {
         returnValidationErrors(inputSchema, {
-          _errors: ["A imagem de fundo enviada e invalida."],
+          _errors: ["A imagem de fundo enviada é inválida."],
         });
       }
 

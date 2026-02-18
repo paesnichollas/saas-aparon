@@ -27,7 +27,7 @@ export const protectedActionClient = actionClient.use(async ({ next }) => {
   const user = await getSessionUser();
 
   if (!user) {
-    throw new Error("Nao autorizado. Por favor, faca login para continuar.");
+    throw new Error("Não autorizado. Por favor, faça login para continuar.");
   }
 
   return next({ ctx: { user } });

@@ -55,7 +55,7 @@ const getBookingTotalLabel = (totalPriceInCents: number | null) => {
     return `Total: ${formatCurrency(totalPriceInCents)}`;
   }
 
-  return "Total indisponivel";
+  return "Total indisponível";
 };
 
 const getBookingServiceNames = (booking: OwnerBookingListItem) => {
@@ -73,7 +73,7 @@ const getBookingServiceNames = (booking: OwnerBookingListItem) => {
     return [fallbackServiceName];
   }
 
-  return ["Servico nao informado"];
+  return ["Serviço não informado"];
 };
 
 const OwnerBookingCard = ({ booking }: OwnerBookingCardProps) => {
@@ -110,7 +110,7 @@ const OwnerBookingCard = ({ booking }: OwnerBookingCardProps) => {
             {serviceNames.join(" + ")}
           </p>
           <p className="text-muted-foreground text-sm">
-            Barbeiro: {booking.barber?.name ?? "Nao informado"}
+            Barbeiro: {booking.barber?.name ?? "Não informado"}
           </p>
           <p className="text-muted-foreground text-sm">{bookingTotalLabel}</p>
           <p className="text-muted-foreground flex items-center gap-2 text-sm">

@@ -53,7 +53,7 @@ const getBookingServiceNames = (booking: NotificationBookingPayload) => {
 
 const getContactPhonesLabel = (phones: string[]) => {
   if (phones.length === 0) {
-    return "telefone indisponivel";
+    return "telefone indisponível";
   }
 
   return phones.join(" / ");
@@ -61,7 +61,7 @@ const getContactPhonesLabel = (phones: string[]) => {
 
 const getBookingTotalLabel = (totalPriceInCents: number | null) => {
   if (typeof totalPriceInCents !== "number") {
-    return "valor indisponivel";
+    return "valor indisponível";
   }
 
   return formatCurrency(totalPriceInCents);
@@ -88,7 +88,7 @@ export const buildNotificationContentVariables = ({
   const bookingDate = getBookingDate(booking);
   const formattedDate = formatBookingDateTime(bookingDate);
   const servicesLabel = getBookingServiceNames(booking);
-  const barberName = booking.barber?.name ?? "Nao informado";
+  const barberName = booking.barber?.name ?? "Não informado";
   const totalLabel = getBookingTotalLabel(booking.totalPriceInCents);
   const phonesLabel = getContactPhonesLabel(booking.barbershop.phones);
   const reminderInstruction = getReminderInstruction(booking.barbershop.phones);
@@ -126,15 +126,15 @@ export const buildNotificationTextBody = ({
   const bookingDate = getBookingDate(booking);
   const formattedDate = formatBookingDateTime(bookingDate);
   const servicesLabel = getBookingServiceNames(booking);
-  const barberName = booking.barber?.name ?? "Nao informado";
+  const barberName = booking.barber?.name ?? "Não informado";
   const totalLabel = getBookingTotalLabel(booking.totalPriceInCents);
   const reminderInstruction = getReminderInstruction(booking.barbershop.phones);
 
   if (type === "BOOKING_CONFIRM") {
     return [
-      `Reserva confirmada na ${booking.barbershop.name}.`,
+      `Agendamento confirmado na ${booking.barbershop.name}.`,
       `Data: ${formattedDate}.`,
-      `Servicos: ${servicesLabel}.`,
+      `Serviços: ${servicesLabel}.`,
       `Barbeiro: ${barberName}.`,
       `Total: ${totalLabel}.`,
       reminderInstruction,
@@ -142,9 +142,9 @@ export const buildNotificationTextBody = ({
   }
 
   return [
-    `Lembrete da sua reserva na ${booking.barbershop.name}.`,
+    `Lembrete da suo agendamento na ${booking.barbershop.name}.`,
     `Data: ${formattedDate}.`,
-    `Servicos: ${servicesLabel}.`,
+    `Serviços: ${servicesLabel}.`,
     reminderInstruction,
   ].join("\n");
 };

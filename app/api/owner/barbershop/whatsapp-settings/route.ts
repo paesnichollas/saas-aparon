@@ -11,7 +11,7 @@ const requestSchema = z
     sendReminder1h: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: "Informe ao menos uma configuracao para atualizar.",
+    message: "Informe ao menos uma configuração para atualizar.",
   });
 
 export const runtime = "nodejs";
@@ -24,7 +24,7 @@ export async function PATCH(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -37,7 +37,7 @@ export async function PATCH(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Corpo da requisicao invalido.",
+        error: "Corpo da requisição inválido.",
       },
       { status: 400 },
     );
@@ -48,7 +48,7 @@ export async function PATCH(request: Request) {
   if (!parsedRequest.success) {
     return NextResponse.json(
       {
-        error: parsedRequest.error.issues[0]?.message ?? "Dados invalidos.",
+        error: parsedRequest.error.issues[0]?.message ?? "Dados inválidos.",
       },
       { status: 422 },
     );
@@ -67,7 +67,7 @@ export async function PATCH(request: Request) {
   if (!ownerBarbershop) {
     return NextResponse.json(
       {
-        error: "Barbearia do owner nao encontrada.",
+        error: "Barbearia do owner não encontrada.",
       },
       { status: 404 },
     );
@@ -77,7 +77,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         code: "FEATURE_NOT_AVAILABLE",
-        error: "WhatsApp automatico disponivel apenas no plano PRO.",
+        error: "WhatsApp automático disponível apenas no plano PRO.",
       },
       { status: 403 },
     );

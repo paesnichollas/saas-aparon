@@ -60,13 +60,13 @@ const AnnualChartTooltip = ({
       <CardContent className="space-y-1 py-3">
         <p className="text-sm font-semibold">{chartPoint.label}</p>
         <p className="text-muted-foreground text-xs">
-          Reservas: {chartPoint.totalBookings.toLocaleString("pt-BR")}
+          Agendamentos: {chartPoint.totalBookings.toLocaleString("pt-BR")}
         </p>
         <p className="text-muted-foreground text-xs">
           Faturamento: {formatCurrency(chartPoint.revenue)}
         </p>
         <p className="text-muted-foreground text-xs">
-          Ticket medio: {formatCurrency(chartPoint.avgTicket)}
+          Ticket médio: {formatCurrency(chartPoint.avgTicket)}
         </p>
       </CardContent>
     </Card>

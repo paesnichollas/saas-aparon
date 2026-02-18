@@ -53,7 +53,7 @@ const confirmCompletedCheckoutSession = async (
   });
 
   if (expandedSession.payment_status !== "paid") {
-    return buildErrorResponse(409, "Checkout session ainda nao foi pago.", {
+    return buildErrorResponse(409, "Checkout session ainda não foi pago.", {
       sessionId: session.id,
       paymentStatus: expandedSession.payment_status,
     });
@@ -75,7 +75,7 @@ const confirmCompletedCheckoutSession = async (
   });
 
   if (!existingBooking) {
-    return buildErrorResponse(409, "Reserva pendente nao encontrada para sessao Stripe.", {
+    return buildErrorResponse(409, "Agendamento pendente não encontrado para sessão Stripe.", {
       sessionId: session.id,
     });
   }
@@ -86,7 +86,7 @@ const confirmCompletedCheckoutSession = async (
       existingBooking.stripeChargeId &&
       existingBooking.stripeChargeId !== chargeId
     ) {
-      return buildErrorResponse(409, "Reserva ja confirmada com charge diferente.", {
+      return buildErrorResponse(409, "Agendamento já confirmado com charge diferente.", {
         sessionId: session.id,
         existingChargeId: existingBooking.stripeChargeId,
         receivedChargeId: chargeId,
@@ -146,7 +146,7 @@ const failCheckoutSessionBooking = async (
   });
 
   if (!existingBooking) {
-    return buildErrorResponse(409, "Reserva pendente nao encontrada para sessao Stripe.", {
+    return buildErrorResponse(409, "Agendamento pendente não encontrado para sessão Stripe.", {
       sessionId: session.id,
     });
   }
@@ -191,7 +191,7 @@ export const POST = async (request: Request) => {
   ) {
     return buildErrorResponse(
       500,
-      "STRIPE_SECRET_KEY ou STRIPE_WEBHOOK_SECRET_KEY nao configurados.",
+      "STRIPE_SECRET_KEY ou STRIPE_WEBHOOK_SECRET_KEY não configurados.",
     );
   }
 

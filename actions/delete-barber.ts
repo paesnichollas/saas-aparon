@@ -36,7 +36,7 @@ export const deleteBarber = protectedActionClient
 
     if (!barber) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbeiro nao encontrado ou sem permissao de remocao."],
+        _errors: ["Barbeiro não encontrado ou sem permissão de remoção."],
       });
     }
 
@@ -65,7 +65,7 @@ export const deleteBarber = protectedActionClient
     if (futureBookingsCount > 0) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          "Nao e possivel remover um barbeiro com agendamentos futuros ativos.",
+          "Não é possível remover um barbeiro com agendamentos futuros ativos.",
         ],
       });
     }

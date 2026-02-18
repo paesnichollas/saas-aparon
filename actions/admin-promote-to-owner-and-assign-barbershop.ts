@@ -32,7 +32,7 @@ export const adminPromoteToOwnerAndAssignBarbershopAction = adminActionClient
     } catch (error) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          getActionErrorMessage(error, "Falha ao promover usuario para owner."),
+          getActionErrorMessage(error, "Falha ao promover usuário para owner."),
         ],
       });
     }

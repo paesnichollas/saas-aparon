@@ -159,7 +159,7 @@ const OwnerPage = async () => {
       </PageSectionContent>
 
       <PageSectionContent>
-        <PageSectionTitle>Servicos</PageSectionTitle>
+        <PageSectionTitle>Serviços</PageSectionTitle>
         <ServicesManagementCard
           barbershopId={barbershop.id}
           services={services.map((service) => ({

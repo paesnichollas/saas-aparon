@@ -107,7 +107,7 @@ export const createBookingCheckoutSession = criticalActionClient
       ) {
         returnValidationErrors(inputSchema, {
           _errors: [
-            "Data e horario selecionados ja passaram ou estao muito proximos do horario atual.",
+            "Data e horário selecionados já passaram ou estão muito próximos do horário atual.",
           ],
         });
       }
@@ -120,7 +120,7 @@ export const createBookingCheckoutSession = criticalActionClient
       const uniqueServiceIds = Array.from(new Set(serviceIds));
       if (uniqueServiceIds.length === 0) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Selecione pelo menos um servico."],
+          _errors: ["Selecione pelo menos um serviço."],
         });
       }
 
@@ -170,19 +170,19 @@ export const createBookingCheckoutSession = criticalActionClient
 
       if (!barbershop || !barber) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia ou barbeiro nao encontrado."],
+          _errors: ["Barbearia ou barbeiro não encontrado."],
         });
       }
 
       if (!barbershop.isActive) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia indisponivel para reservas."],
+          _errors: ["Barbearia indisponível para agendamentos."],
         });
       }
 
       if (services.length !== uniqueServiceIds.length) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Um ou mais servicos selecionados nao estao disponiveis."],
+          _errors: ["Um ou mais serviços selecionados não estão disponíveis."],
         });
       }
 
@@ -192,7 +192,7 @@ export const createBookingCheckoutSession = criticalActionClient
       if (hasInvalidService) {
         returnValidationErrors(inputSchema, {
           _errors: [
-            "Um ou mais servicos estao temporariamente indisponiveis para reserva.",
+            "Um ou mais serviços estão temporariamente indisponíveis para agendamento.",
           ],
         });
       }
@@ -201,7 +201,7 @@ export const createBookingCheckoutSession = criticalActionClient
         calculateBookingTotals(services);
       if (totalDurationMinutes <= 0) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Nao foi possivel calcular a duracao total da reserva."],
+          _errors: ["Não foi possível calcular a duração total do agendamento."],
         });
       }
 
@@ -249,7 +249,7 @@ export const createBookingCheckoutSession = criticalActionClient
 
       if (hasCollision) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Data e horario selecionados ja estao agendados."],
+          _errors: ["Data e horário selecionados já estão agendados."],
         });
       }
 
@@ -293,13 +293,13 @@ export const createBookingCheckoutSession = criticalActionClient
 
       if (totalPriceInCents < 1) {
         returnValidationErrors(inputSchema, {
-          _errors: ["O valor total desta reserva e invalido para pagamento online."],
+          _errors: ["O valor total deste agendamento é inválido para pagamento online."],
         });
       }
 
       if (!process.env.STRIPE_SECRET_KEY) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Chave de API do Stripe nao encontrada."],
+          _errors: ["Chave de API do Stripe não encontrada."],
         });
       }
 
@@ -311,7 +311,7 @@ export const createBookingCheckoutSession = criticalActionClient
         );
         returnValidationErrors(inputSchema, {
           _errors: [
-            "Configuracao de URL da aplicacao invalida. Tente novamente em alguns instantes.",
+            "Configuração de URL da aplicacao inválida. Tente novamente em alguns instantes.",
           ],
         });
       }
@@ -354,8 +354,8 @@ export const createBookingCheckoutSession = criticalActionClient
                 currency: "brl",
                 unit_amount: totalPriceInCents,
                 product_data: {
-                  name: `${barbershop.name} - Reserva com ${services.length} servicos`,
-                  description: `Barbeiro: ${barber.name}. Servicos: ${serviceDescription}`,
+                  name: `${barbershop.name} - Agendamento com ${services.length} serviços`,
+                  description: `Barbeiro: ${barber.name}. Serviços: ${serviceDescription}`,
                 },
               },
               quantity: 1,
@@ -370,7 +370,7 @@ export const createBookingCheckoutSession = criticalActionClient
         });
         returnValidationErrors(inputSchema, {
           _errors: [
-            "Nao foi possivel iniciar o pagamento agora. Verifique os dados da reserva e tente novamente.",
+            "Não foi possível iniciar o pagamento agora. Verifique os dados do agendamento e tente novamente.",
           ],
         });
       }
@@ -428,7 +428,7 @@ export const createBookingCheckoutSession = criticalActionClient
 
         returnValidationErrors(inputSchema, {
           _errors: [
-            "Nao foi possivel reservar este horario agora. Tente novamente em alguns instantes.",
+            "Não foi possível reservar este horário agora. Tente novamente em alguns instantes.",
           ],
         });
       }

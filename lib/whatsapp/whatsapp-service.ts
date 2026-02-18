@@ -20,7 +20,7 @@ const normalizeWhatsAppAddress = (value: string) => {
   const trimmedValue = value.trim();
 
   if (!trimmedValue) {
-    throw new Error("Endereco WhatsApp invalido.");
+    throw new Error("Endereço WhatsApp inválido.");
   }
 
   if (trimmedValue.startsWith("whatsapp:")) {
@@ -28,7 +28,7 @@ const normalizeWhatsAppAddress = (value: string) => {
   }
 
   if (!trimmedValue.startsWith("+")) {
-    throw new Error("Endereco WhatsApp deve estar em formato E.164.");
+    throw new Error("Endereço WhatsApp deve estar em formato E.164.");
   }
 
   return `whatsapp:${trimmedValue}`;
@@ -81,7 +81,7 @@ export const sendWhatsAppMessage = async ({
   } else {
     if (process.env.NODE_ENV === "production") {
       throw new Error(
-        `Template ContentSid nao configurado para ${type} em ambiente de producao.`,
+        `Template ContentSid não configurado para ${type} em ambiente de producao.`,
       );
     }
 
@@ -118,7 +118,7 @@ export const sendWhatsAppMessage = async ({
   try {
     parsedResponse = JSON.parse(responseText) as unknown;
   } catch {
-    throw new Error("[twilio] Resposta invalida da API de mensagens.");
+    throw new Error("[twilio] Resposta inválida da API de mensagens.");
   }
 
   const providerMessageId =

@@ -55,7 +55,7 @@ const BookingSummary = ({
     <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">Servicos</p>
+          <p className="text-sm font-medium">Serviços</p>
           <div className="space-y-1">
             {services.map((service) => (
               <div

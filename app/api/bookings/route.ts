@@ -21,9 +21,9 @@ const requestSchema = z.object({
   date: z.string().trim().min(1),
 });
 
-const INVALID_REQUEST_MESSAGE = "Requisicao invalida.";
+const INVALID_REQUEST_MESSAGE = "Requisição inválida.";
 const INVALID_DATE_MESSAGE =
-  "Data e horario invalidos. Use o formato YYYY-MM-DDTHH:mm:ss.";
+  "Data e horário inválidos. Use o formato YYYY-MM-DDTHH:mm:ss.";
 
 const getValidationErrorMessage = (validationErrors: unknown) => {
   if (!validationErrors || typeof validationErrors !== "object") {
@@ -46,8 +46,12 @@ const getServerErrorMessage = (serverError: unknown) => {
   return null;
 };
 
+const normalizeForMessageMatch = (value: string) => {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
 const isUnauthorizedErrorMessage = (message: string) => {
-  const normalizedMessage = message.toLowerCase();
+  const normalizedMessage = normalizeForMessageMatch(message);
   return normalizedMessage.includes("nao autorizado") || normalizedMessage.includes("login");
 };
 
@@ -84,7 +88,7 @@ export const POST = async (request: Request) => {
   if (!session?.user) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -165,7 +169,7 @@ export const POST = async (request: Request) => {
   if (!createBookingResult.data) {
     return NextResponse.json(
       {
-        error: "Nao foi possivel criar a reserva.",
+        error: "Não foi possível criar o agendamento.",
       },
       { status: 500 },
     );

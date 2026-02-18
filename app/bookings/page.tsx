@@ -44,7 +44,7 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
                   <CardTitle>Nenhuma barbearia vinculada</CardTitle>
                   <CardDescription>
                     Vincule sua conta de dono a uma barbearia para visualizar as
-                    reservas.
+                    agendamentos.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -58,7 +58,7 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
             <PageSectionContent>
               <OwnerBookingsList
                 bookings={ownerBookings}
-                emptyMessage="Nenhuma reserva encontrada para sua barbearia."
+                emptyMessage="Nenhum agendamento encontrado para sua barbearia."
               />
             </PageSectionContent>
           )}

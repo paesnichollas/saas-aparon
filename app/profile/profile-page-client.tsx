@@ -58,8 +58,8 @@ const createProfileFormSchema = ({
       name: z
         .string()
         .trim()
-        .min(2, "Informe um nome valido.")
-        .max(120, "Informe um nome com no maximo 120 caracteres."),
+        .min(2, "Informe um nome válido.")
+        .max(120, "Informe um nome com no máximo 120 caracteres."),
       phone: z.string().optional(),
       contactEmail: z.string().optional(),
     })
@@ -74,7 +74,7 @@ const createProfileFormSchema = ({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["phone"],
-            message: "Informe um telefone valido.",
+            message: "Informe um telefone válido.",
           });
         }
       }
@@ -86,7 +86,7 @@ const createProfileFormSchema = ({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["contactEmail"],
-            message: "Informe um email valido.",
+            message: "Informe um email válido.",
           });
         }
       }
@@ -176,18 +176,18 @@ const ProfilePageClient = ({
       if (rootError) {
         toast.error(rootError);
       } else if (!nameError && !phoneError && !contactEmailError) {
-        toast.error("Nao foi possivel salvar seus dados.");
+        toast.error("Não foi possível salvar seus dados.");
       }
       return;
     }
 
     if (result.serverError) {
-      toast.error("Nao foi possivel salvar seus dados.");
+      toast.error("Não foi possível salvar seus dados.");
       return;
     }
 
     if (!result.data) {
-      toast.error("Nao foi possivel salvar seus dados.");
+      toast.error("Não foi possível salvar seus dados.");
       return;
     }
 
@@ -291,7 +291,7 @@ const ProfilePageClient = ({
                 />
               </div>
               <FormDescription>
-                O email principal da conta nao pode ser alterado nesta etapa.
+                O email principal da conta não pode ser alterado nesta etapa.
               </FormDescription>
             </FormItem>
           ) : null}
@@ -309,7 +309,7 @@ const ProfilePageClient = ({
                       <Input
                         type="email"
                         autoComplete="email"
-                        placeholder="voce@exemplo.com"
+                        placeholder="você@exemplo.com"
                         className="pl-9"
                         disabled={isPending}
                         value={field.value ?? ""}
@@ -318,7 +318,7 @@ const ProfilePageClient = ({
                     </FormControl>
                   </div>
                   <FormDescription>
-                    Esse email e usado para contato e recuperacao da conta.
+                    Esse email é usado para contato e recuperação da conta.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

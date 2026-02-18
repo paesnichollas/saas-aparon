@@ -362,7 +362,7 @@ const BarbersManagementCard = ({
             <div className="space-y-1">
               <CardTitle>Gerenciar barbeiros</CardTitle>
               <CardDescription>
-                Cadastre e mantenha os barbeiros disponiveis para agendamentos.
+                Cadastre e mantenha os barbeiros disponíveis para agendamentos.
               </CardDescription>
             </div>
             <Button onClick={handleCreateClick} className="gap-2">
@@ -412,7 +412,7 @@ const BarbersManagementCard = ({
               {barberInEdition ? "Editar barbeiro" : "Novo barbeiro"}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do barbeiro para disponibiliza-lo no agendamento.
+              Preencha os dados do barbeiro para disponibilizá-lo no agendamento.
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -446,7 +446,7 @@ const BarbersManagementCard = ({
                 previewAlt={watchedBarberName?.trim() || "Preview do barbeiro"}
                 barbershopId={barbershopId}
                 disabled={isSavingBarber}
-                helperText="A imagem e enviada via UploadThing e salva como URL."
+                helperText="A imagem é enviada via UploadThing é salva como URL."
                 emptyText="Sem imagem para preview."
                 onUploadingChange={setIsUploadingBarberImage}
               />

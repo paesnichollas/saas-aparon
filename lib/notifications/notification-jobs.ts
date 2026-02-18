@@ -94,7 +94,7 @@ export const scheduleBookingNotificationJobs = async (
 
   if (!isValidE164Phone(booking.user.phone)) {
     console.info(
-      "[scheduleBookingNotificationJobs] Ignorando agendamento de notificacoes por telefone invalido.",
+      "[scheduleBookingNotificationJobs] Ignorando agendamento de notificacoes por telefone inválido.",
       {
         bookingId: booking.id,
         userPhone: booking.user.phone,

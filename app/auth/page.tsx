@@ -7,7 +7,7 @@ import AuthPageClient from "./auth-page-client";
 const AuthPageFallback = () => {
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <p className="text-sm">Carregando autenticacao...</p>
+      <p className="text-sm">Carregando autenticação...</p>
     </main>
   );
 };

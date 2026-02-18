@@ -49,7 +49,7 @@ const getTwilioFrom = (barbershopFrom: string | null) => {
     return defaultFrom;
   }
 
-  throw new Error("Numero remetente do WhatsApp nao configurado.");
+  throw new Error("Numero remetente do WhatsApp não configurado.");
 };
 
 const markJobAsCanceled = async (
@@ -190,7 +190,7 @@ const processNotificationJob = async (jobId: string) => {
       data: {
         attempts: nextAttempts,
         status: nextAttempts >= NOTIFICATION_MAX_ATTEMPTS ? "FAILED" : "PENDING",
-        lastError: "Telefone de destino invalido para envio WhatsApp.",
+        lastError: "Telefone de destino inválido para envio WhatsApp.",
         scheduledAt:
           nextAttempts >= NOTIFICATION_MAX_ATTEMPTS
             ? undefined
@@ -322,7 +322,7 @@ const handleDispatch = async (request: Request) => {
   if (!cronSecret) {
     return NextResponse.json(
       {
-        error: "CRON_SECRET nao configurado.",
+        error: "CRON_SECRET não configurado.",
       },
       { status: 500 },
     );
@@ -333,7 +333,7 @@ const handleDispatch = async (request: Request) => {
   if (!requestSecret || requestSecret !== cronSecret) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );

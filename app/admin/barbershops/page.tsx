@@ -146,9 +146,9 @@ const AdminBarbershopsPage = async ({
               defaultValue={exclusive}
               className="bg-background border-input h-9 rounded-md border px-3 text-sm"
             >
-              <option value="ALL">Exclusivas e nao exclusivas</option>
+              <option value="ALL">Exclusivas e não exclusivas</option>
               <option value="EXCLUSIVE">Somente exclusivas</option>
-              <option value="NON_EXCLUSIVE">Somente nao exclusivas</option>
+              <option value="NON_EXCLUSIVE">Somente não exclusivas</option>
             </select>
             <Button type="submit">Buscar</Button>
           </form>
@@ -163,7 +163,7 @@ const AdminBarbershopsPage = async ({
                 <TableHead>Exclusiva</TableHead>
                 <TableHead>Plano</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Acoes</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,7 +194,7 @@ const AdminBarbershopsPage = async ({
                       <TableCell>{displayPhones.join(", ")}</TableCell>
                       <TableCell>{barbershop.stripeEnabled ? "Ativo" : "Inativo"}</TableCell>
                       <TableCell>
-                        {barbershop.exclusiveBarber ? "Sim" : "Nao"}
+                        {barbershop.exclusiveBarber ? "Sim" : "Não"}
                       </TableCell>
                       <TableCell>
                         {barbershop.plan === "PRO"

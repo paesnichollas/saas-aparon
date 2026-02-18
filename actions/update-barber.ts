@@ -55,7 +55,7 @@ export const updateBarber = protectedActionClient
 
     if (!barber) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbeiro nao encontrado ou sem permissao de edicao."],
+        _errors: ["Barbeiro não encontrado ou sem permissão de edição."],
       });
     }
 
@@ -63,7 +63,7 @@ export const updateBarber = protectedActionClient
 
     if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
       returnValidationErrors(inputSchema, {
-        _errors: ["A imagem enviada e invalida."],
+        _errors: ["A imagem enviada é inválida."],
       });
     }
 

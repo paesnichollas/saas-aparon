@@ -27,12 +27,12 @@ interface CompleteProfileFieldErrors {
 }
 
 const MIN_NAME_LENGTH = 2;
-const INVALID_REQUEST_MESSAGE = "Dados de cadastro invalidos.";
+const INVALID_REQUEST_MESSAGE = "Dados de cadastro inválidos.";
 const CONTACT_EMAIL_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Ja ha um usuario cadastrado com esse email.";
+  "Já há um usuário cadastrado com esse email.";
 const PHONE_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Ja ha um usuario cadastrado com esse telefone.";
-const USER_NOT_FOUND_ERROR_MESSAGE = "Usuario nao encontrado.";
+  "Já há um usuário cadastrado com esse telefone.";
+const USER_NOT_FOUND_ERROR_MESSAGE = "Usuário não encontrado.";
 
 const requestSchema = z.object({
   name: z.string().trim().max(120).optional(),
@@ -117,7 +117,7 @@ export async function PATCH(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -170,18 +170,18 @@ export async function PATCH(request: Request) {
   const fieldErrors: CompleteProfileFieldErrors = {};
 
   if (nextName.length < MIN_NAME_LENGTH) {
-    fieldErrors.name = "Informe um nome valido.";
+    fieldErrors.name = "Informe um nome válido.";
   }
 
   if (nextContactEmail && !isValidContactEmail(nextContactEmail)) {
-    fieldErrors.contactEmail = "Informe um email valido.";
+    fieldErrors.contactEmail = "Informe um email válido.";
   }
 
   if (provider === "phone" || provider === "google") {
     if (hasPhoneInput && !normalizedPhoneFromInput) {
-      fieldErrors.phone = "Informe um telefone valido.";
+      fieldErrors.phone = "Informe um telefone válido.";
     } else if (!nextPhone) {
-      fieldErrors.phone = "Informe um telefone valido.";
+      fieldErrors.phone = "Informe um telefone válido.";
     }
   }
 
@@ -193,7 +193,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json(
       {
         code: PROFILE_INCOMPLETE_FIELDS_CODE,
-        error: "Ainda faltam campos obrigatorios para concluir o cadastro.",
+        error: "Ainda faltam campos obrigatórios para concluir o cadastro.",
         fields: fieldErrors,
       },
       { status: 422 },
@@ -327,7 +327,7 @@ export async function PATCH(request: Request) {
 
       return NextResponse.json(
         {
-          error: "Ja existe um usuario com esses dados.",
+          error: "Já existe um usuário com esses dados.",
         },
         { status: 409 },
       );

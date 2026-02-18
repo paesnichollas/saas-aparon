@@ -26,7 +26,7 @@ export const adminUpdateUserRoleAction = adminActionClient
     } catch (error) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          getActionErrorMessage(error, "Falha ao atualizar papel do usuario."),
+          getActionErrorMessage(error, "Falha ao atualizar papel do usuário."),
         ],
       });
     }

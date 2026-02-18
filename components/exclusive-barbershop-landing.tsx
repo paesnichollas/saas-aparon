@@ -55,12 +55,12 @@ const dayLabels = [
   "Sabado",
 ];
 
-const DEFAULT_HOME_PREMIUM_TITLE = "Experiencia premium na home";
+const DEFAULT_HOME_PREMIUM_TITLE = "Experiência premium na home";
 const DEFAULT_HOME_PREMIUM_DESCRIPTION =
   "Sua barbearia fica em destaque para todos os acessos em modo exclusivo.";
 const DEFAULT_HOME_PREMIUM_CHIPS = [
   "Atendimento personalizado",
-  "Reserva em poucos passos",
+  "Agendamento em poucos passos",
   "Visual profissional",
 ];
 
@@ -154,7 +154,7 @@ const ExclusiveBarbershopLanding = ({
                 </div>
               ) : (
                 <Button disabled className="w-full rounded-full sm:w-[14rem]">
-                  Reservas indisponíveis
+                  Agendamentos indisponíveis
                 </Button>
               )}
               <Button
@@ -172,7 +172,7 @@ const ExclusiveBarbershopLanding = ({
                 variant="ghost"
                 className="rounded-full text-primary-foreground"
               >
-                <Link href="/home">Voltar para inicio</Link>
+                <Link href="/home">Voltar para início</Link>
               </Button> */}
             </div>
           </div>
@@ -185,7 +185,7 @@ const ExclusiveBarbershopLanding = ({
           <Card className="border-accent bg-accent/40 py-4">
             <CardContent className="flex items-center justify-between px-4">
               <div className="space-y-1">
-                <p className="text-muted-foreground text-xs">Servicos ativos</p>
+                <p className="text-muted-foreground text-xs">Serviços ativos</p>
                 <p className="text-xl font-bold">
                   {barbershop.services.length}
                 </p>
@@ -198,7 +198,7 @@ const ExclusiveBarbershopLanding = ({
             <CardContent className="flex items-center justify-between px-4">
               <div className="space-y-1">
                 <p className="text-muted-foreground text-xs">
-                  Barbeiros disponiveis
+                  Barbeiros disponíveis
                 </p>
                 <p className="text-xl font-bold">{barbershop.barbers.length}</p>
               </div>
@@ -215,7 +215,7 @@ const ExclusiveBarbershopLanding = ({
                 <p className="text-xl font-bold">
                   {startingPriceInCents
                     ? formatCurrency(startingPriceInCents)
-                    : "Sem servicos"}
+                    : "Sem serviços"}
                 </p>
               </div>
               <Clock3 className="text-primary size-5" />
@@ -244,9 +244,9 @@ const ExclusiveBarbershopLanding = ({
 
         <Card className="lg:col-span-2">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-base">Horario semanal</CardTitle>
+            <CardTitle className="text-base">Horário semanal</CardTitle>
             <CardDescription>
-              Horarios visiveis para facilitar o agendamento.
+              Horários visiveis para facilitar o agendamento.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -273,7 +273,7 @@ const ExclusiveBarbershopLanding = ({
 
       {featuredServices.length > 0 ? (
         <PageSectionContent>
-          <PageSectionTitle>Servicos em destaque</PageSectionTitle>
+          <PageSectionTitle>Serviços em destaque</PageSectionTitle>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {featuredServices.map((service) => {
               const serviceImageUrl = service.imageUrl ?? barbershopImageUrl;
@@ -317,7 +317,7 @@ const ExclusiveBarbershopLanding = ({
 
       <section id="servicos">
         <PageSectionContent>
-          <PageSectionTitle>Todos os servicos</PageSectionTitle>
+          <PageSectionTitle>Todos os serviços</PageSectionTitle>
           {barbershop.services.length > 0 ? (
             <Accordion type="single" collapsible className="rounded-2xl border px-3">
               {barbershop.services.map((service) => {
@@ -385,7 +385,7 @@ const ExclusiveBarbershopLanding = ({
             <Card>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  Nenhum servico cadastrado no momento.
+                  Nenhum serviço cadastrado no momento.
                 </p>
               </CardContent>
             </Card>

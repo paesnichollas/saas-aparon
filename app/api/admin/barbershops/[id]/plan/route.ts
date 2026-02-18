@@ -33,7 +33,7 @@ export async function PATCH(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -45,7 +45,7 @@ export async function PATCH(request: Request) {
   if (!parsedBarbershopId.success) {
     return NextResponse.json(
       {
-        error: "Barbearia invalida.",
+        error: "Barbearia inválida.",
       },
       { status: 400 },
     );
@@ -58,7 +58,7 @@ export async function PATCH(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Corpo da requisicao invalido.",
+        error: "Corpo da requisição inválido.",
       },
       { status: 400 },
     );
@@ -69,7 +69,7 @@ export async function PATCH(request: Request) {
   if (!parsedRequest.success) {
     return NextResponse.json(
       {
-        error: "Dados invalidos para atualizar plano da barbearia.",
+        error: "Dados inválidos para atualizar plano da barbearia.",
       },
       { status: 422 },
     );
@@ -176,7 +176,7 @@ export async function PATCH(request: Request) {
     if (error instanceof Error && error.message === "BARBERSHOP_NOT_FOUND") {
       return NextResponse.json(
         {
-          error: "Barbearia nao encontrada.",
+          error: "Barbearia não encontrada.",
         },
         { status: 404 },
       );

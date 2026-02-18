@@ -65,18 +65,18 @@ type ServicesManagementCardProps = {
 };
 
 const serviceFormSchema = z.object({
-  name: z.string().trim().min(2, "Informe o nome do servico.").max(80),
+  name: z.string().trim().min(2, "Informe o nome do serviço.").max(80),
   description: z.string().trim().max(500).optional(),
   priceInReais: z
     .string()
     .trim()
-    .min(1, "Informe o valor do servico.")
-    .max(20, "Informe um valor valido."),
+    .min(1, "Informe o valor do serviço.")
+    .max(20, "Informe um valor válido."),
   durationInMinutes: z
     .number()
     .int("Informe um valor inteiro.")
-    .min(5, "A duracao minima e de 5 minutos.")
-    .max(240, "A duracao maxima e de 240 minutos."),
+    .min(5, "A duração mínima e de 5 minutos.")
+    .max(240, "A duração máxima e de 240 minutos."),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -186,7 +186,7 @@ const ServiceRow = memo(({ service, onEdit, onDelete }: ServiceRowProps) => {
         <div className="space-y-1">
           <p className="font-medium">{service.name}</p>
           <p className="text-muted-foreground text-xs">
-            {service.description?.trim() || "Sem descricao."}
+            {service.description?.trim() || "Sem descrição."}
           </p>
           <Badge variant="secondary">
             {service.imageUrl ? "Com imagem" : "Sem imagem"}
@@ -320,9 +320,9 @@ const ServicesManagementCard = ({
 
     if (priceInCents === null) {
       serviceForm.setError("priceInReais", {
-        message: "Informe um valor valido. Exemplo: 29,90.",
+        message: "Informe um valor válido. Exemplo: 29,90.",
       });
-      toast.error("Informe um valor valido para o servico.");
+      toast.error("Informe um valor válido para o serviço.");
       return;
     }
 
@@ -339,7 +339,7 @@ const ServicesManagementCard = ({
       const updateErrorMessage = getActionErrorMessage(
         updateResult.validationErrors,
         updateResult.serverError,
-        "Erro ao atualizar servico. Tente novamente.",
+        "Erro ao atualizar serviço. Tente novamente.",
       );
 
       if (updateErrorMessage) {
@@ -348,7 +348,7 @@ const ServicesManagementCard = ({
       }
 
       if (!updateResult.data) {
-        toast.error("Erro ao atualizar servico. Tente novamente.");
+        toast.error("Erro ao atualizar serviço. Tente novamente.");
         return;
       }
 
@@ -356,7 +356,7 @@ const ServicesManagementCard = ({
       setServiceInEdition(null);
       setServiceImageUrl(null);
       serviceForm.reset(DEFAULT_FORM_VALUES);
-      toast.success("Servico atualizado com sucesso.");
+      toast.success("Serviço atualizado com sucesso.");
       router.refresh();
       return;
     }
@@ -373,7 +373,7 @@ const ServicesManagementCard = ({
     const createErrorMessage = getActionErrorMessage(
       createResult.validationErrors,
       createResult.serverError,
-      "Erro ao criar servico. Tente novamente.",
+      "Erro ao criar serviço. Tente novamente.",
     );
 
     if (createErrorMessage) {
@@ -382,7 +382,7 @@ const ServicesManagementCard = ({
     }
 
     if (!createResult.data) {
-      toast.error("Erro ao criar servico. Tente novamente.");
+      toast.error("Erro ao criar serviço. Tente novamente.");
       return;
     }
 
@@ -390,7 +390,7 @@ const ServicesManagementCard = ({
     setServiceInEdition(null);
     setServiceImageUrl(null);
     serviceForm.reset(DEFAULT_FORM_VALUES);
-    toast.success("Servico criado com sucesso.");
+    toast.success("Serviço criado com sucesso.");
     router.refresh();
   };
 
@@ -406,7 +406,7 @@ const ServicesManagementCard = ({
     const deleteErrorMessage = getActionErrorMessage(
       deleteResult.validationErrors,
       deleteResult.serverError,
-      "Erro ao remover servico. Tente novamente.",
+      "Erro ao remover serviço. Tente novamente.",
     );
 
     if (deleteErrorMessage) {
@@ -416,7 +416,7 @@ const ServicesManagementCard = ({
 
     setIsDeleteDialogOpen(false);
     setServiceToDelete(null);
-    toast.success("Servico removido com sucesso.");
+    toast.success("Serviço removido com sucesso.");
     router.refresh();
   };
 
@@ -426,14 +426,14 @@ const ServicesManagementCard = ({
         <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle>Gerenciar servicos</CardTitle>
+              <CardTitle>Gerenciar serviços</CardTitle>
               <CardDescription>
-                Crie, edite e remova servicos da sua barbearia.
+                Crie, edite e remova serviços da sua barbearia.
               </CardDescription>
             </div>
             <Button onClick={handleCreateClick} className="gap-2">
               <Plus className="size-4" />
-              Novo servico
+              Novo serviço
             </Button>
           </div>
           <Separator />
@@ -443,10 +443,10 @@ const ServicesManagementCard = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Servico</TableHead>
-                  <TableHead>Preco</TableHead>
-                  <TableHead>Duracao</TableHead>
-                  <TableHead className="text-right">Acoes</TableHead>
+                  <TableHead>Serviço</TableHead>
+                  <TableHead>Preço</TableHead>
+                  <TableHead>Duração</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -464,10 +464,10 @@ const ServicesManagementCard = ({
             <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed p-6 text-center">
               <Badge variant="secondary" className="gap-1">
                 <Scissors className="size-3" />
-                Nenhum servico cadastrado
+                Nenhum serviço cadastrado
               </Badge>
               <p className="text-muted-foreground text-sm">
-                Clique em &quot;Novo servico&quot; para cadastrar o primeiro servico.
+                Clique em &quot;Novo serviço&quot; para cadastrar o primeiro serviço.
               </p>
             </div>
           )}
@@ -478,10 +478,10 @@ const ServicesManagementCard = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {serviceInEdition ? "Editar servico" : "Novo servico"}
+              {serviceInEdition ? "Editar serviço" : "Novo serviço"}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do servico e salve para atualizar sua listagem.
+              Preencha os dados do serviço e salve para atualizar sua listagem.
             </DialogDescription>
           </DialogHeader>
           <Separator />
@@ -514,10 +514,10 @@ const ServicesManagementCard = ({
                   name="description"
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
-                      <FormLabel>Descricao (opcional)</FormLabel>
+                      <FormLabel>Descrição (opcional)</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Descricao curta do servico"
+                          placeholder="Descrição curta do serviço"
                           {...field}
                           value={field.value ?? ""}
                           disabled={isServiceFormBusy}
@@ -535,7 +535,7 @@ const ServicesManagementCard = ({
                     label="Imagem (opcional)"
                     barbershopId={barbershopId}
                     disabled={isSavingService}
-                    helperText="A imagem e enviada via UploadThing e salva como URL."
+                    helperText="A imagem é enviada via UploadThing é salva como URL."
                     emptyText="Sem imagem para preview."
                     onUploadingChange={setIsUploadingServiceImage}
                   />
@@ -567,7 +567,7 @@ const ServicesManagementCard = ({
                   name="durationInMinutes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Duracao (minutos)</FormLabel>
+                      <FormLabel>Duração (minutos)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -608,7 +608,7 @@ const ServicesManagementCard = ({
                   ) : serviceInEdition ? (
                     "Salvar alteracoes"
                   ) : (
-                    "Criar servico"
+                    "Criar serviço"
                   )}
                 </Button>
               </DialogFooter>
@@ -620,11 +620,11 @@ const ServicesManagementCard = ({
       <Dialog open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Remover servico</DialogTitle>
+            <DialogTitle>Remover serviço</DialogTitle>
             <DialogDescription>
               {serviceToDelete
                 ? `Tem certeza que deseja remover "${serviceToDelete.name}"?`
-                : "Confirme para remover este servico."}
+                : "Confirme para remover este serviço."}
             </DialogDescription>
           </DialogHeader>
           <Separator />

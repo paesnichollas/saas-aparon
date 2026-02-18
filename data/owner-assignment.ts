@@ -37,7 +37,7 @@ const assertAdminActor = async (actorUserId: string) => {
 
   if (!actor || actor.role !== ADMIN_ROLE) {
     throw new OwnerAssignmentError(
-      "Somente administradores podem alterar ownership de usuarios.",
+      "Somente administradores podem alterar ownership de usuários.",
     );
   }
 };
@@ -115,9 +115,9 @@ export const promoteUserToOwnerByAdmin = async ({
 }: PromoteUserToOwnerInput): Promise<PromoteUserToOwnerResult> => {
   const normalizedActorUserId = normalizeRequiredId(
     actorUserId,
-    "Usuario administrador invalido.",
+    "Usuário administrador inválido.",
   );
-  const normalizedUserId = normalizeRequiredId(userId, "Usuario invalido.");
+  const normalizedUserId = normalizeRequiredId(userId, "Usuário inválido.");
   const normalizedBarbershopId = normalizeRequiredId(
     barbershopId,
     "Selecione uma barbearia para vincular.",
@@ -139,7 +139,7 @@ export const promoteUserToOwnerByAdmin = async ({
       });
 
       if (!targetUser) {
-        throw new OwnerAssignmentError("Usuario nao encontrado.");
+        throw new OwnerAssignmentError("Usuário não encontrado.");
       }
 
       const targetBarbershop = await tx.barbershop.findUnique({
@@ -154,7 +154,7 @@ export const promoteUserToOwnerByAdmin = async ({
       });
 
       if (!targetBarbershop) {
-        throw new OwnerAssignmentError("Barbearia nao encontrada.");
+        throw new OwnerAssignmentError("Barbearia não encontrada.");
       }
 
       let transferredOwnershipFromUserId: string | null = null;
@@ -164,7 +164,7 @@ export const promoteUserToOwnerByAdmin = async ({
 
       if (hasDifferentCurrentOwner && !allowTransfer) {
         throw new OwnerAssignmentError(
-          "A barbearia selecionada ja possui dono. Ative allowTransfer para transferir a propriedade.",
+          "A barbearia selecionada já possui dono. Ative allowTransfer para transferir a propriedade.",
         );
       }
 
@@ -278,7 +278,7 @@ export const promoteUserToOwnerByAdmin = async ({
       error.code === "P2002"
     ) {
       throw new OwnerAssignmentError(
-        "Nao foi possivel concluir a promocao por conflito de ownership. Tente novamente.",
+        "Não foi possível concluir a promoção por conflito de ownership. Tente novamente.",
       );
     }
 
@@ -306,9 +306,9 @@ export const demoteOwnerToCustomerByAdmin = async ({
 }: DemoteOwnerToCustomerInput): Promise<DemoteOwnerToCustomerResult> => {
   const normalizedActorUserId = normalizeRequiredId(
     actorUserId,
-    "Usuario administrador invalido.",
+    "Usuário administrador inválido.",
   );
-  const normalizedUserId = normalizeRequiredId(userId, "Usuario invalido.");
+  const normalizedUserId = normalizeRequiredId(userId, "Usuário inválido.");
 
   await assertAdminActor(normalizedActorUserId);
 
@@ -326,7 +326,7 @@ export const demoteOwnerToCustomerByAdmin = async ({
     });
 
     if (!targetUser) {
-      throw new OwnerAssignmentError("Usuario nao encontrado.");
+      throw new OwnerAssignmentError("Usuário não encontrado.");
     }
 
     const ownedBarbershop = await tx.barbershop.findFirst({

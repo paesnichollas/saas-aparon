@@ -35,7 +35,7 @@ export const isAdmin = (role: UserRole | null | undefined) => role === "ADMIN";
 export const isOwner = (role: UserRole | null | undefined) => role === "OWNER";
 
 const getUnauthorizedErrorMessage = (roles: UserRole[]) => {
-  return `Nao autorizado. Papel necessario: ${roles.join(" ou ")}.`;
+  return `Não autorizado. Papel necessário: ${roles.join(" ou ")}.`;
 };
 
 export const getSessionUser = async (): Promise<SessionUser | null> => {

@@ -44,9 +44,9 @@ type ChatBarbershop = Prisma.BarbershopGetPayload<{
 
 const INVALID_BARBERSHOP_CONTEXT_MESSAGE = "Contexto da barbearia inválido";
 const FORBIDDEN_BARBERSHOP_CONTEXT_ERROR_CODE = "FORBIDDEN_CONTEXT";
-const INVALID_DATE_ONLY_MESSAGE = "Data invalida. Use o formato YYYY-MM-DD.";
+const INVALID_DATE_ONLY_MESSAGE = "Data inválida. Use o formato YYYY-MM-DD.";
 const INVALID_BOOKING_DATE_TIME_MESSAGE =
-  "Data e horario invalidos. Use o formato YYYY-MM-DDTHH:mm:ss.";
+  "Data e horário inválidos. Use o formato YYYY-MM-DDTHH:mm:ss.";
 
 const getValidationErrorMessage = (validationErrors: unknown) => {
   if (!validationErrors || typeof validationErrors !== "object") {
@@ -69,28 +69,32 @@ const getServerErrorMessage = (serverError: unknown) => {
   return null;
 };
 
+const normalizeForMessageMatch = (value: string) => {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
 const isUnauthorizedErrorMessage = (message: string | null) => {
   if (!message) {
     return false;
   }
 
-  const normalizedMessage = message.toLowerCase();
+  const normalizedMessage = normalizeForMessageMatch(message);
   return normalizedMessage.includes("nao autorizado") || normalizedMessage.includes("login");
 };
 
 const getSystemPrompt = (isExclusiveContext: boolean) => {
   const exclusiveModeInstructions = isExclusiveContext
-    ? `MODO EXCLUSIVO (OBRIGATORIO):
-- Voce esta em contexto exclusivo de UMA barbearia especifica.
-- NUNCA ofereca, liste ou consulte dados de outras barbearias.
+    ? `MODO EXCLUSIVO (OBRIGATÓRIO):
+- Você está em contexto exclusivo de UMA barbearia específica.
+- NUNCA ofereça, liste ou consulte dados de outras barbearias.
 - Em caso de erro de contexto, informe exatamente: "Contexto da barbearia inválido".
-- Nao tente contornar o contexto pedindo outro barbershopId.`
+- Não tente contornar o contexto pedindo outro barbershopId.`
     : `MODO GLOBAL:
-- Voce pode buscar e apresentar barbearias normalmente, conforme as ferramentas retornarem dados.`;
+- Você pode buscar e apresentar barbearias normalmente, conforme as ferramentas retornarem dados.`;
 
-  return `Voce e o Agenda.ai, um assistente virtual de agendamento de barbearias.
+  return `Você é o Agenda.ai, um assistente virtual de agendamento de barbearias.
 
-DATA ATUAL: Hoje e ${new Date().toLocaleDateString("pt-BR", {
+DATA ATUAL: Hoje é ${new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -99,68 +103,68 @@ DATA ATUAL: Hoje e ${new Date().toLocaleDateString("pt-BR", {
 
 ${exclusiveModeInstructions}
 
-Seu objetivo e ajudar os usuarios a:
-- Encontrar barbearias (por nome ou todas disponiveis)
+Seu objetivo é ajudar os usuários a:
+- Encontrar barbearias (por nome ou todas disponíveis)
 - Escolher um barbeiro da barbearia escolhida
-- Verificar disponibilidade de horarios para um barbeiro especifico
-- Fornecer informacoes sobre servicos e precos
-- Criar agendamentos quando o usuario confirmar
+- Verificar disponibilidade de horários para um barbeiro específico
+- Fornecer informações sobre serviços e preços
+- Criar agendamentos quando o usuário confirmar
 
 Fluxo de atendimento:
 
-CENARIO 1 - Usuario menciona data/horario na primeira mensagem (ex: "quero um corte pra hoje", "preciso cortar o cabelo amanha", "quero marcar para sexta"):
+CENÁRIO 1 - Usuário menciona data/horário na primeira mensagem (ex: "quero um corte pra hoje", "preciso cortar o cabelo amanhã", "quero marcar para sexta"):
 1. Use a ferramenta searchBarbershops para buscar barbearias.
-2. Quando o usuario escolher uma barbearia, use listBarbersByBarbershop com o barbershopId escolhido.
-3. Se nao houver barbeiros na barbearia:
-   - informe exatamente: "Esta barbearia ainda nao possui barbeiros cadastrados. Peca para o estabelecimento cadastrar barbeiros no painel administrativo."
-   - NAO avance para horarios e NAO tente criar reserva.
-4. Depois que o usuario escolher um barbeiro, use getAvailableTimeSlotsForBarbershop para buscar horarios.
-5. Apresente as opcoes com horarios disponiveis, mostrando:
+2. Quando o usuário escolher uma barbearia, use listBarbersByBarbershop com o barbershopId escolhido.
+3. Se não houver barbeiros na barbearia:
+   - informe exatamente: "Esta barbearia ainda não possui barbeiros cadastrados. Peça para o estabelecimento cadastrar barbeiros no painel administrativo."
+   - NÃO avance para horários e NÃO tente criar agendamento.
+4. Depois que o usuário escolher um barbeiro, use getAvailableTimeSlotsForBarbershop para buscar horários.
+5. Apresente as opções com horários disponíveis, mostrando:
    - Nome da barbearia
    - Nome do barbeiro
-   - Endereco
-   - Servicos oferecidos com precos
-   - Alguns horarios disponiveis (4-5 opcoes espacadas)
-6. Quando o usuario escolher, forneca o resumo final.
+   - Endereço
+   - Serviços oferecidos com preços
+   - Alguns horários disponíveis (4-5 opções espaçadas)
+6. Quando o usuário escolher, forneça o resumo final.
 
-CENARIO 2 - Usuario nao menciona data/horario inicialmente:
+CENÁRIO 2 - Usuário não menciona data/horário inicialmente:
 1. Use a ferramenta searchBarbershops para buscar barbearias.
 2. Apresente as barbearias encontradas com:
    - Nome da barbearia
-   - Endereco
-   - Servicos oferecidos com precos
-3. Quando o usuario demonstrar interesse em uma barbearia especifica, use listBarbersByBarbershop.
-4. O usuario precisa escolher um barbeiro antes de consultar horarios.
-5. Quando o usuario escolher barbeiro e data, use getAvailableTimeSlotsForBarbershop com barbershopId, barberId, serviceId e data.
-6. Apresente os horarios disponiveis (liste alguns horarios, nao todos - sugira 4-5 opcoes espacadas).
+   - Endereço
+   - Serviços oferecidos com preços
+3. Quando o usuário demonstrar interesse em uma barbearia específica, use listBarbersByBarbershop.
+4. O usuário precisa escolher um barbeiro antes de consultar horários.
+5. Quando o usuário escolher barbeiro e data, use getAvailableTimeSlotsForBarbershop com barbershopId, barberId, serviceId e data.
+6. Apresente os horários disponíveis (liste alguns horários, não todos - sugira 4-5 opções espaçadas).
 
-Resumo final (quando o usuario escolher):
+Resumo final (quando o usuário escolher):
 - Nome da barbearia
-- Endereco
+- Endereço
 - Barbeiro escolhido
-- Servico escolhido
-- Data e horario escolhido
-- Preco
+- Serviço escolhido
+- Data e horário escolhido
+- Preço
 
-Criacao da reserva:
-- Apos o usuario confirmar explicitamente a escolha (ex: "confirmo", "pode agendar", "quero esse horario"), use createBooking.
-- Parametros obrigatorios:
+Criação do agendamento:
+- Após o usuário confirmar explicitamente a escolha (ex: "confirmo", "pode agendar", "quero esse horário"), use createBooking.
+- Parâmetros obrigatórios:
   * barbershopId: ID da barbearia escolhida
-  * serviceId: ID do servico escolhido
+  * serviceId: ID do serviço escolhido
   * barberId: ID do barbeiro escolhido
-  * date: Data e horario no formato ISO (YYYY-MM-DDTHH:mm:ss) - exemplo: "2025-11-05T10:00:00"
-- NUNCA tente criar reserva sem barberId escolhido.
-- Se a criacao for bem-sucedida (success: true), informe ao usuario que a reserva foi confirmada com sucesso.
-- Se houver erro (success: false), explique o erro ao usuario:
-  * Se o errorCode for "UNAUTHORIZED", informe que e necessario fazer login para criar uma reserva.
-  * Para outros erros, informe que houve um problema e peca para tentar novamente.
+  * date: Data e horário no formato ISO (YYYY-MM-DDTHH:mm:ss) - exemplo: "2025-11-05T10:00:00"
+- NUNCA tente criar agendamento sem barberId escolhido.
+- Se a criação for bem-sucedida (success: true), informe ao usuário que o agendamento foi confirmado com sucesso.
+- Se houver erro (success: false), explique o erro ao usuário:
+  * Se o errorCode for "UNAUTHORIZED", informe que é necessário fazer login para criar um agendamento.
+  * Para outros erros, informe que houve um problema e peça para tentar novamente.
 
 Importante:
-- NUNCA mostre informacoes tecnicas ao usuario (barbershopId, barberId, serviceId, formatos ISO de data, etc.)
-- Seja sempre educado, prestativo e use uma linguagem informal e amigavel
-- Nao liste TODOS os horarios disponiveis, sugira apenas 4-5 opcoes espacadas ao longo do dia
-- Se nao houver horarios disponiveis, sugira uma data alternativa
-- Quando o usuario mencionar "hoje", "amanha", "depois de amanha" ou dias da semana, calcule a data correta automaticamente`;
+- NUNCA mostre informações técnicas ao usuário (barbershopId, barberId, serviceId, formatos ISO de data, etc.)
+- Seja sempre educado, prestativo e use uma linguagem informal e amigável
+- Não liste TODOS os horários disponíveis, sugira apenas 4-5 opções espaçadas ao longo do dia
+- Se não houver horários disponíveis, sugira uma data alternativa
+- Quando o usuário mencionar "hoje", "amanhã", "depois de amanhã" ou dias da semana, calcule a data correta automaticamente`;
 };
 
 const isForbiddenExclusiveContext = (
@@ -222,13 +226,13 @@ export const POST = async (request: Request) => {
     tools: {
       searchBarbershops: tool({
         description:
-          "Pesquisa barbearias pelo nome. Se nenhum nome e passado, retorna todas as barbearias.",
+          "Pesquisa barbearias pelo nome. Se nenhum nome é passado, retorna todas as barbearias.",
         inputSchema: z.object({
           name: z
             .string()
             .optional()
             .describe(
-              "O nome da barbearia a ser pesquisada. Se nenhum nome e passado, retorna todas as barbearias.",
+              "O nome da barbearia a ser pesquisada. Se nenhum nome é passado, retorna todas as barbearias.",
             ),
         }),
         execute: async ({ name }) => {
@@ -275,7 +279,7 @@ export const POST = async (request: Request) => {
       }),
       listBarbersByBarbershop: tool({
         description:
-          "Lista os barbeiros ativos de uma barbearia para o usuario escolher antes do horario.",
+          "Lista os barbeiros ativos de uma barbearia para o usuário escolher antes do horário.",
         inputSchema: z.object({
           barbershopId: z.uuid(),
         }),
@@ -307,7 +311,7 @@ export const POST = async (request: Request) => {
       }),
       getAvailableTimeSlotsForBarbershop: tool({
         description:
-          "Obtem os horarios disponiveis para uma barbearia e barbeiro especificos.",
+          "Obtém os horários disponíveis para uma barbearia e barbeiro específicos.",
         inputSchema: z.object({
           barbershopId: z.string().uuid(),
           barberId: z.string().uuid(),
@@ -315,7 +319,7 @@ export const POST = async (request: Request) => {
           date: z
             .string()
             .describe(
-              "A data no formato ISO (YYYY-MM-DD) para a qual voce deseja verificar os horarios disponiveis.",
+              "A data no formato ISO (YYYY-MM-DD) para a qual você deseja verificar os horários disponíveis.",
             ),
         }),
         execute: async ({ barbershopId, barberId, serviceId, date }) => {
@@ -405,7 +409,7 @@ export const POST = async (request: Request) => {
             return {
               success: false,
               errorCode: "SERVER_ERROR",
-              message: "Nao foi possivel consultar os horarios agora.",
+              message: "Não foi possível consultar os horários agora.",
               barbershopId,
               barberId,
               serviceId,
@@ -417,7 +421,7 @@ export const POST = async (request: Request) => {
       }),
       createBooking: tool({
         description:
-          "Cria um novo agendamento para um servico especifico em uma data especifica.",
+          "Cria um novo agendamento para um serviço específico em uma data específica.",
         inputSchema: z.object({
           barbershopId: z.uuid(),
           serviceId: z.uuid(),
@@ -425,7 +429,7 @@ export const POST = async (request: Request) => {
           date: z
             .string()
             .describe(
-              "A data e horario no formato ISO (YYYY-MM-DDTHH:mm:ss) para criar o agendamento.",
+              "A data e horário no formato ISO (YYYY-MM-DDTHH:mm:ss) para criar o agendamento.",
             ),
         }),
         execute: async ({ barbershopId, serviceId, barberId, date }) => {
@@ -486,7 +490,7 @@ export const POST = async (request: Request) => {
               return {
                 success: false,
                 errorCode: "UNKNOWN_ERROR",
-                message: "Nao foi possivel criar a reserva.",
+                message: "Não foi possível criar o agendamento.",
               };
             }
 
@@ -498,7 +502,7 @@ export const POST = async (request: Request) => {
             console.error("createBooking error", error);
 
             const errorMessage =
-              error instanceof Error ? error.message : "Erro desconhecido ao criar reserva.";
+              error instanceof Error ? error.message : "Erro desconhecido ao criar agendamento.";
 
             return {
               success: false,

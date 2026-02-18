@@ -106,13 +106,13 @@ export const getOwnerReport = protectedActionClient
 
       if (!user) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Usuario nao encontrado."],
+          _errors: ["Usuário não encontrado."],
         });
       }
 
       if (!isAdmin(user.role) && user.role !== "OWNER") {
         returnValidationErrors(inputSchema, {
-          _errors: ["Apenas owners e administradores podem acessar este relatorio."],
+          _errors: ["Apenas owners e administradores podem acessar este relatório."],
         });
       }
 
@@ -120,7 +120,7 @@ export const getOwnerReport = protectedActionClient
 
       if (!dateWindow) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Periodo invalido para gerar o relatorio."],
+          _errors: ["Período inválido para gerar o relatório."],
         });
       }
 
@@ -129,7 +129,7 @@ export const getOwnerReport = protectedActionClient
       if (isAdmin(user.role)) {
         if (!barbershopId) {
           returnValidationErrors(inputSchema, {
-            _errors: ["Selecione uma barbearia para gerar o relatorio."],
+            _errors: ["Selecione uma barbearia para gerar o relatório."],
           });
         }
 
@@ -144,7 +144,7 @@ export const getOwnerReport = protectedActionClient
 
         if (!barbershop) {
           returnValidationErrors(inputSchema, {
-            _errors: ["Barbearia nao encontrada."],
+            _errors: ["Barbearia não encontrada."],
           });
         }
       } else {
@@ -157,7 +157,7 @@ export const getOwnerReport = protectedActionClient
 
         if (!ownerBarbershop) {
           returnValidationErrors(inputSchema, {
-            _errors: ["Barbearia nao encontrada ou sem permissao para visualizar."],
+            _errors: ["Barbearia não encontrada ou sem permissão para visualizar."],
           });
         }
 

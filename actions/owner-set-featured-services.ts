@@ -16,7 +16,7 @@ const inputSchema = z
     if (uniqueIds.size !== input.serviceIds.length) {
       context.addIssue({
         code: "custom",
-        message: "Nao pode haver servicos duplicados.",
+        message: "Não pode haver serviços duplicados.",
         path: ["serviceIds"],
       });
     }
@@ -39,13 +39,13 @@ export const ownerSetFeaturedServices = protectedActionClient
 
     if (!barbershop) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbearia do owner nao encontrada."],
+        _errors: ["Barbearia do owner não encontrada."],
       });
     }
 
     if (!barbershop.exclusiveBarber) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Personalizacao disponivel apenas para barbearias exclusivas."],
+        _errors: ["Personalizacao disponível apenas para barbearias exclusivas."],
       });
     }
 
@@ -65,7 +65,7 @@ export const ownerSetFeaturedServices = protectedActionClient
 
       if (validServices.length !== serviceIds.length) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Um ou mais servicos nao pertencem a sua barbearia."],
+          _errors: ["Um ou mais serviços não pertencem a sua barbearia."],
         });
       }
     }

@@ -96,9 +96,9 @@ const AdminOwnersPage = async ({ searchParams }: AdminOwnersPageProps) => {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Owners e usuarios</CardTitle>
+          <CardTitle>Owners e usuários</CardTitle>
           <CardDescription>
-            Filtre usuarios por papel e controle promocoes/rebaixamentos.
+            Filtre usuários por papel e controle promoções/rebaixamentos.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -115,7 +115,7 @@ const AdminOwnersPage = async ({ searchParams }: AdminOwnersPageProps) => {
               defaultValue={role}
               className="bg-background border-input h-9 rounded-md border px-3 text-sm"
             >
-              <option value="ALL">Todos os papeis</option>
+              <option value="ALL">Todos os papéis</option>
               <option value="CUSTOMER">CUSTOMER</option>
               <option value="OWNER">OWNER</option>
               <option value="ADMIN">ADMIN</option>

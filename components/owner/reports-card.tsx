@@ -241,7 +241,7 @@ const formatDateLabel = (isoDate: string) => {
 };
 
 const formatDateRangeLabel = (rangeStart: string, rangeEnd: string) => {
-  return `${formatDateLabel(rangeStart)} ate ${formatDateLabel(rangeEnd)}`;
+  return `${formatDateLabel(rangeStart)} até ${formatDateLabel(rangeEnd)}`;
 };
 
 const formatPercentLabel = (value: number | null) => {
@@ -328,7 +328,7 @@ const KpiCard = ({ title, summary, isPending, comparisonLabel }: KpiCardProps) =
         ) : (
           <>
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Reservas</p>
+              <p className="text-muted-foreground text-xs">Agendamentos</p>
               <p className="text-xl font-semibold">
                 {(summary?.current.totalBookings ?? 0).toLocaleString("pt-BR")}
               </p>
@@ -340,7 +340,7 @@ const KpiCard = ({ title, summary, isPending, comparisonLabel }: KpiCardProps) =
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Ticket medio</p>
+              <p className="text-muted-foreground text-xs">Ticket médio</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(summary?.current.avgTicket ?? 0)}
               </p>
@@ -348,7 +348,7 @@ const KpiCard = ({ title, summary, isPending, comparisonLabel }: KpiCardProps) =
             <div className="space-y-1.5 border-t pt-3">
               <p className="text-muted-foreground text-xs">{comparisonLabel}</p>
               <DeltaLabel
-                label="Reservas"
+                label="Agendamentos"
                 value={summary ? summary.delta.bookingsPercent : 0}
               />
               <DeltaLabel
@@ -391,13 +391,13 @@ const AnnualChartTooltip = ({
       <CardContent className="space-y-1 py-3">
         <p className="text-sm font-semibold">{chartPoint.label}</p>
         <p className="text-muted-foreground text-xs">
-          Reservas: {chartPoint.totalBookings.toLocaleString("pt-BR")}
+          Agendamentos: {chartPoint.totalBookings.toLocaleString("pt-BR")}
         </p>
         <p className="text-muted-foreground text-xs">
           Faturamento: {formatCurrency(chartPoint.revenue)}
         </p>
         <p className="text-muted-foreground text-xs">
-          Ticket medio: {formatCurrency(chartPoint.avgTicket)}
+          Ticket médio: {formatCurrency(chartPoint.avgTicket)}
         </p>
       </CardContent>
     </Card>
@@ -502,12 +502,12 @@ const OwnerReportsCard = ({
         if (!response.ok) {
           const errorMessage =
             getApiErrorMessage(responseData) ??
-            "Nao foi possivel carregar o resumo mensal.";
+            "Não foi possível carregar o resumo mensal.";
           throw new Error(errorMessage);
         }
 
         if (!hasMonthlySummaryShape(responseData)) {
-          throw new Error("Resumo mensal invalido.");
+          throw new Error("Resumo mensal inválido.");
         }
 
         setMonthlySummary(responseData);
@@ -520,7 +520,7 @@ const OwnerReportsCard = ({
         setMonthlySummaryError(
           error instanceof Error
             ? error.message
-            : "Nao foi possivel carregar o resumo mensal.",
+            : "Não foi possível carregar o resumo mensal.",
         );
       } finally {
         if (!abortController.signal.aborted) {
@@ -573,12 +573,12 @@ const OwnerReportsCard = ({
       if (!response.ok) {
         const errorMessage =
           getApiErrorMessage(responseData) ??
-          "Nao foi possivel carregar os indicadores.";
+          "Não foi possível carregar os indicadores.";
         throw new Error(errorMessage);
       }
 
       if (!hasSummaryShape(responseData)) {
-        throw new Error("Indicador invalido.");
+        throw new Error("Indicador inválido.");
       }
 
       return responseData;
@@ -613,7 +613,7 @@ const OwnerReportsCard = ({
         setSummaryError(
           error instanceof Error
             ? error.message
-            : "Nao foi possivel carregar os indicadores.",
+            : "Não foi possível carregar os indicadores.",
         );
       } finally {
         if (!abortController.signal.aborted) {
@@ -675,7 +675,7 @@ const OwnerReportsCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Relatorio</CardTitle>
+        <CardTitle>Relatório</CardTitle>
         <CardDescription>
           Indicadores semanais, mensais e anuais para acompanhar desempenho e
           faturamento.
@@ -711,7 +711,7 @@ const OwnerReportsCard = ({
 
           <div className="space-y-2">
             <label htmlFor="owner-report-month" className="text-sm font-medium">
-              Mes
+              Mês
             </label>
             <select
               id="owner-report-month"
@@ -770,7 +770,7 @@ const OwnerReportsCard = ({
 
         {!canLoadReport ? (
           <p className="text-muted-foreground text-sm">
-            Selecione uma barbearia para visualizar o relatorio.
+            Selecione uma barbearia para visualizar o relatório.
           </p>
         ) : null}
 
@@ -801,7 +801,7 @@ const OwnerReportsCard = ({
             title="Mensal"
             summary={summaries.month}
             isPending={isSummaryPending}
-            comparisonLabel="Comparado com o mes anterior"
+            comparisonLabel="Comparado com o mês anterior"
           />
           <KpiCard
             title="Anual"
@@ -815,7 +815,7 @@ const OwnerReportsCard = ({
           <CardHeader>
             <CardTitle className="text-base">Evolucao anual ({selectedYear})</CardTitle>
             <CardDescription>
-              Faturamento de janeiro a dezembro com tooltip por mes.
+              Faturamento de janeiro a dezembro com tooltip por mês.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -879,7 +879,7 @@ const OwnerReportsCard = ({
             )}
 
             {isYearEmpty && !isMonthlySummaryPending ? (
-              <p className="text-muted-foreground text-sm">Sem reservas no periodo.</p>
+              <p className="text-muted-foreground text-sm">Sem agendamentos no período.</p>
             ) : null}
           </CardContent>
         </Card>
@@ -887,16 +887,16 @@ const OwnerReportsCard = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Detalhes do mes: {detailsMonth.label}/{selectedYear}
+              Detalhes do mês: {detailsMonth.label}/{selectedYear}
             </CardTitle>
             <CardDescription>
-              Resumo do mes selecionado no dropdown.
+              Resumo do mês selecionado no dropdown.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-3">
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Reservas no mes</CardDescription>
+                <CardDescription>Agendamentos no mês</CardDescription>
                 <CardTitle className="text-2xl">
                   {detailsMonth.totalBookings.toLocaleString("pt-BR")}
                 </CardTitle>
@@ -904,7 +904,7 @@ const OwnerReportsCard = ({
             </Card>
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Faturamento no mes</CardDescription>
+                <CardDescription>Faturamento no mês</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(detailsMonth.revenue)}
                 </CardTitle>
@@ -912,7 +912,7 @@ const OwnerReportsCard = ({
             </Card>
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Ticket medio no mes</CardDescription>
+                <CardDescription>Ticket médio no mês</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(detailsMonth.avgTicket)}
                 </CardTitle>

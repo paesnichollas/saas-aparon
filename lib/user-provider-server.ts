@@ -100,7 +100,7 @@ export const resolveAndPersistUserProviderById = async (userId: string) => {
   });
 
   if (!user) {
-    throw new Error("Nao autorizado.");
+    throw new Error("Não autorizado.");
   }
 
   return resolveAndPersistUserProvider(user);

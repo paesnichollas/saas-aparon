@@ -47,7 +47,7 @@ const PaymentSettingsForm = ({
       return;
     }
 
-    toast.success("Pagamento via Stripe desativado. As reservas serão confirmadas diretamente.");
+    toast.success("Pagamento via Stripe desativado. Os agendamentos serão confirmados diretamente.");
   };
 
   return (
@@ -55,7 +55,7 @@ const PaymentSettingsForm = ({
       <CardHeader>
         <CardTitle>Pagamento</CardTitle>
         <CardDescription>
-          Defina se o cliente precisa pagar no Stripe ou se a reserva será criada
+          Defina se o cliente precisa pagar no Stripe ou se o agendamento será criado
           diretamente para pagamento presencial.
         </CardDescription>
       </CardHeader>

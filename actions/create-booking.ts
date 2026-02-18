@@ -56,7 +56,7 @@ export const createBooking = criticalActionClient
     if (isBookingDateTimeAtOrBeforeNowWithBuffer(date, BOOKING_SLOT_BUFFER_MINUTES)) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          "Data e horario selecionados ja passaram ou estao muito proximos do horario atual.",
+          "Data e horário selecionados já passaram ou estão muito próximos do horário atual.",
         ],
       });
     }
@@ -99,14 +99,14 @@ export const createBooking = criticalActionClient
       });
       returnValidationErrors(inputSchema, {
         _errors: [
-          "Este serviço está temporariamente indisponível para reserva. Tente novamente mais tarde.",
+          "Este serviço está temporariamente indisponível para agendamento. Tente novamente mais tarde.",
         ],
       });
     }
 
     if (!service.barbershop.isActive) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbearia indisponivel para reservas."],
+        _errors: ["Barbearia indisponível para agendamentos."],
       });
     }
 
@@ -122,7 +122,7 @@ export const createBooking = criticalActionClient
 
     if (!barber) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Barbeiro nao encontrado para esta barbearia."],
+        _errors: ["Barbeiro não encontrado para esta barbearia."],
       });
     }
 

@@ -149,7 +149,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
     }
 
     if (checkoutResult.kind === "created") {
-      toast.success("Reserva confirmada com sucesso.");
+      toast.success("Agendamento confirmado com sucesso.");
       setSheetIsOpen(false);
       setSelectedDate(undefined);
       setSelectedTime(undefined);
@@ -184,7 +184,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
       <SheetContent className="overflow-y-auto px-0 pb-0">
         <SheetHeader className="border-border border-b px-5 py-6">
-          <SheetTitle>Fazer Reserva</SheetTitle>
+          <SheetTitle>Fazer Agendamento</SheetTitle>
         </SheetHeader>
 
         <div className="space-y-6 px-5 py-6">
@@ -232,7 +232,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-semibold">3. Escolha os servicos</p>
+            <p className="text-sm font-semibold">3. Escolha os serviços</p>
             <div className="space-y-2">
               {services.map((service) => {
                 const isSelected = selectedServiceIds.includes(service.id);
@@ -271,11 +271,11 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
           {selectedDate && selectedBarberId && selectedServiceIds.length > 0 ? (
             <div className="space-y-3">
-              <p className="text-sm font-semibold">4. Escolha o horario</p>
+              <p className="text-sm font-semibold">4. Escolha o horário</p>
               {isLoadingTimeSlots ? (
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
                   <Loader2 className="size-4 animate-spin" />
-                  Carregando horarios...
+                  Carregando horários...
                 </div>
               ) : availableTimeSlots?.data?.length ? (
                 <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -292,7 +292,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm">
-                  Nenhum horario disponivel para esta combinacao.
+                  Nenhum horário disponível para esta combinação.
                 </p>
               )}
             </div>

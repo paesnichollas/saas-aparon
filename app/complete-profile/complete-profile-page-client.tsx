@@ -139,7 +139,7 @@ const CompleteProfilePageClient = ({
     const nextFieldErrors: FormFieldErrors = {};
 
     if (normalizedName.length < MIN_NAME_LENGTH) {
-      nextFieldErrors.name = "Informe um nome valido.";
+      nextFieldErrors.name = "Informe um nome válido.";
     }
 
     if (
@@ -147,7 +147,7 @@ const CompleteProfilePageClient = ({
       (normalizedPhone.length < MIN_PHONE_LENGTH ||
         normalizedPhone.length > MAX_PHONE_LENGTH)
     ) {
-      nextFieldErrors.phone = "Informe um telefone valido.";
+      nextFieldErrors.phone = "Informe um telefone válido.";
     }
 
     if (
@@ -155,7 +155,7 @@ const CompleteProfilePageClient = ({
       normalizedContactEmail &&
       !isValidContactEmail(normalizedContactEmail)
     ) {
-      nextFieldErrors.contactEmail = "Informe um email valido.";
+      nextFieldErrors.contactEmail = "Informe um email válido.";
     }
 
     if (provider === "credentials" && !hasPasswordAccount) {
@@ -211,12 +211,12 @@ const CompleteProfilePageClient = ({
               contactEmail:
                 responseJson?.fields?.contactEmail ??
                 responseJson?.error ??
-                "Este email ja esta em uso.",
+                "Este email já está em uso.",
             }));
           }
         }
 
-        toast.error(responseJson?.error ?? "Nao foi possivel concluir seu cadastro.");
+        toast.error(responseJson?.error ?? "Não foi possível concluir seu cadastro.");
         return;
       }
 
@@ -224,7 +224,7 @@ const CompleteProfilePageClient = ({
       router.replace(returnTo);
       router.refresh();
     } catch {
-      toast.error("Nao foi possivel concluir seu cadastro.");
+      toast.error("Não foi possível concluir seu cadastro.");
     } finally {
       setIsSubmitting(false);
     }
@@ -236,7 +236,7 @@ const CompleteProfilePageClient = ({
         <CardHeader className="space-y-2">
           <CardTitle>Complete seu cadastro</CardTitle>
           <p className="text-muted-foreground text-sm">
-            Precisamos de alguns dados antes de liberar reservas e acesso ao
+            Precisamos de alguns dados antes de liberar agendamentos e acesso ao
             painel.
           </p>
         </CardHeader>
@@ -315,12 +315,12 @@ const CompleteProfilePageClient = ({
                       clearFieldError("contactEmail");
                     }}
                     className="pl-9"
-                    placeholder="voce@exemplo.com"
+                    placeholder="você@exemplo.com"
                     disabled={isSubmitting}
                   />
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  Se tiver, ajuda na recuperacao da conta e recebimento de
+                  Se tiver, ajuda na recuperação da conta e recebimento de
                   comprovantes.
                 </p>
                 {provider === "phone" ? (

@@ -84,12 +84,12 @@ const ExclusiveHomeCustomizationCard = ({
     );
 
     if (hasChipWithSameName) {
-      toast.error("Essa tag ja foi adicionada.");
+      toast.error("Essa tag já foi adicionada.");
       return;
     }
 
     if (chips.length >= 8) {
-      toast.error("Voce pode adicionar no maximo 8 tags.");
+      toast.error("Você pode adicionar no máximo 8 tags.");
       return;
     }
 
@@ -166,12 +166,12 @@ const ExclusiveHomeCustomizationCard = ({
     }
 
     if (result.serverError || !result.data) {
-      toast.error("Erro ao salvar servicos em destaque.");
+      toast.error("Erro ao salvar serviços em destaque.");
       return;
     }
 
     setFeaturedServiceIds(result.data.featuredServiceIds);
-    toast.success("Servicos em destaque atualizados.");
+    toast.success("Serviços em destaque atualizados.");
     router.refresh();
   };
 
@@ -180,7 +180,7 @@ const ExclusiveHomeCustomizationCard = ({
       <CardHeader>
         <CardTitle>Personalizar Home (Exclusive)</CardTitle>
         <CardDescription>
-          Edite o card premium e escolha quais servicos aparecem em destaque na
+          Edite o card premium e escolha quais serviços aparecem em destaque na
           home exclusiva.
         </CardDescription>
       </CardHeader>
@@ -194,20 +194,20 @@ const ExclusiveHomeCustomizationCard = ({
               id="home-premium-title"
               value={titleInput}
               onChange={(event) => setTitleInput(event.target.value)}
-              placeholder="Experiencia premium na home"
+              placeholder="Experiência premium na home"
               disabled={isSavingHomePremium}
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="home-premium-description" className="text-sm font-medium">
-              Descricao do card premium
+              Descrição do card premium
             </label>
             <Textarea
               id="home-premium-description"
               value={descriptionInput}
               onChange={(event) => setDescriptionInput(event.target.value)}
-              placeholder="Descreva os diferenciais da sua experiencia exclusiva."
+              placeholder="Descreva os diferenciais da sua experiência exclusiva."
               rows={4}
               disabled={isSavingHomePremium}
             />
@@ -270,9 +270,9 @@ const ExclusiveHomeCustomizationCard = ({
 
         <div className="space-y-4">
           <div className="space-y-1">
-            <h3 className="text-sm font-medium">Servicos em destaque</h3>
+            <h3 className="text-sm font-medium">Serviços em destaque</h3>
             <p className="text-muted-foreground text-sm">
-              Selecione manualmente os servicos que aparecerao em destaque na
+              Selecione manualmente os serviços que aparecerão em destaque na
               home exclusiva.
             </p>
           </div>
@@ -304,7 +304,7 @@ const ExclusiveHomeCustomizationCard = ({
             </div>
           ) : (
             <p className="text-muted-foreground text-sm">
-              Nenhum servico disponivel para destaque.
+              Nenhum serviço disponível para destaque.
             </p>
           )}
 
@@ -315,7 +315,7 @@ const ExclusiveHomeCustomizationCard = ({
             className="gap-2"
           >
             {isSavingFeatured ? <Loader2 className="size-4 animate-spin" /> : null}
-            Salvar servicos em destaque
+            Salvar serviços em destaque
           </Button>
         </div>
       </CardContent>

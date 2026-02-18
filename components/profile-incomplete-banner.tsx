@@ -20,7 +20,7 @@ const ProfileIncompleteBanner = ({
       >
         <CircleAlert className="mt-0.5 size-4 shrink-0" />
         <p className="text-sm font-medium">
-          Seu cadastro esta incompleto.{" "}
+          Seu cadastro está incompleto.{" "}
           <span className="underline">Clique aqui para finalizar.</span>
         </p>
       </Link>

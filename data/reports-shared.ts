@@ -299,7 +299,7 @@ export const resolveReportBarbershopIdForRole = async ({
       return {
         ok: false,
         status: 404,
-        error: "Barbearia nao encontrada.",
+        error: "Barbearia não encontrada.",
       };
     }
 
@@ -328,7 +328,7 @@ export const resolveReportBarbershopIdForRole = async ({
     return {
       ok: false,
       status: 403,
-      error: "Barbearia nao encontrada ou sem permissao para visualizar.",
+      error: "Barbearia não encontrada ou sem permissão para visualizar.",
     };
   }
 

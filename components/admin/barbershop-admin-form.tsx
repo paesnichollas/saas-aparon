@@ -166,7 +166,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
     const parsedPhonesDigits = parsePhoneListToDigits(phonesText);
 
     if (!normalizedSlug) {
-      toast.error("Informe um slug valido.");
+      toast.error("Informe um slug válido.");
       return;
     }
 
@@ -176,7 +176,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
     }
 
     if (parsedPhonesDigits.some((phoneDigits) => !isValidPhoneDigits(phoneDigits))) {
-      toast.error("Informe telefones validos com DDD (10 ou 11 digitos).");
+      toast.error("Informe telefones válidos com DDD (10 ou 11 digitos).");
       return;
     }
 
@@ -227,7 +227,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
     }
 
     if (!barbershop) {
-      toast.error("Barbearia invalida.");
+      toast.error("Barbearia inválida.");
       return;
     }
 
@@ -302,7 +302,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="admin-barbershop-address">Endereco</Label>
+        <Label htmlFor="admin-barbershop-address">Endereço</Label>
         <Input
           id="admin-barbershop-address"
           value={address}
@@ -313,7 +313,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="admin-barbershop-description">Descricao</Label>
+        <Label htmlFor="admin-barbershop-description">Descrição</Label>
         <Textarea
           id="admin-barbershop-description"
           value={description}
@@ -345,7 +345,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
         previewAlt={name.trim() || "Preview da barbearia"}
         barbershopId={barbershop?.id}
         disabled={isCreating || isUpdating}
-        helperText="A imagem e enviada via UploadThing e salva como URL."
+        helperText="A imagem é enviada via UploadThing é salva como URL."
         emptyText="Sem imagem para preview."
         onUploadingChange={setIsUploadingImage}
       />
@@ -357,7 +357,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
         previewAlt={name.trim() || "Preview da logo"}
         barbershopId={barbershop?.id}
         disabled={isCreating || isUpdating}
-        helperText="A logo e enviada via UploadThing e salva como URL."
+        helperText="A logo é enviada via UploadThing é salva como URL."
         emptyText="Sem logo para preview."
         onUploadingChange={setIsUploadingLogo}
       />
@@ -399,7 +399,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           <p className="text-muted-foreground text-xs">Owner atual: {currentOwnerLabel}</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            Se informado, o usuario sera promovido para OWNER desta barbearia.
+            Se informado, o usuário sera promovido para OWNER desta barbearia.
           </p>
         )}
       </div>

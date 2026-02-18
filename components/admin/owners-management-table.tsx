@@ -231,8 +231,8 @@ const OwnerUserRow = memo(
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                       {ownedBarbershop.isActive
-                        ? "Esta acao desabilita a barbearia, o owner e todos os clientes vinculados, alem de encerrar sessoes ativas."
-                        : "Esta acao reativa a barbearia, o owner e todos os clientes vinculados."}
+                        ? "Esta ação desabilita a barbearia, o owner e todos os clientes vinculados, além de encerrar sessões ativas."
+                        : "Esta ação reativa a barbearia, o owner e todos os clientes vinculados."}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -325,12 +325,12 @@ const OwnersManagementTable = ({
       }
 
       if (result.serverError || !result.data) {
-        toast.error("Falha ao atualizar papel do usuario.");
+        toast.error("Falha ao atualizar papel do usuário.");
         setCurrentMutationUserId(null);
         return;
       }
 
-      toast.success("Papel do usuario atualizado.");
+      toast.success("Papel do usuário atualizado.");
       setCurrentMutationUserId(null);
       router.refresh();
     },
@@ -342,7 +342,7 @@ const OwnersManagementTable = ({
       const selectedBarbershopId = selectedBarbershopByUserId[userId]?.trim();
 
       if (!selectedBarbershopId) {
-        toast.error("Informe a barbearia para promover o usuario a owner.");
+        toast.error("Informe a barbearia para promover o usuário a owner.");
         return;
       }
 
@@ -363,12 +363,12 @@ const OwnersManagementTable = ({
       }
 
       if (result.serverError || !result.data) {
-        toast.error("Falha ao promover usuario para owner.");
+        toast.error("Falha ao promover usuário para owner.");
         setCurrentMutationUserId(null);
         return;
       }
 
-      toast.success("Usuario promovido para owner com sucesso.");
+      toast.success("Usuário promovido para owner com sucesso.");
       setCurrentMutationUserId(null);
       router.refresh();
     },
@@ -456,12 +456,12 @@ const OwnersManagementTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Usuario</TableHead>
+            <TableHead>Usuário</TableHead>
             <TableHead>Papel</TableHead>
-            <TableHead>Status usuario</TableHead>
+            <TableHead>Status usuário</TableHead>
             <TableHead>Barbearia owner</TableHead>
             <TableHead>Status barbearia</TableHead>
-            <TableHead>Acoes</TableHead>
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
           <TableBody>
@@ -483,7 +483,7 @@ const OwnersManagementTable = ({
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="text-muted-foreground text-sm">
-                Nenhum usuario encontrado.
+                Nenhum usuário encontrado.
               </TableCell>
             </TableRow>
           )}

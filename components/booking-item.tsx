@@ -30,7 +30,7 @@ const BookingItem = ({ booking }: BookingItemProps) => {
   const bookingTotalLabel =
     typeof booking.totalPriceInCents === "number"
       ? `Total: ${formatCurrency(booking.totalPriceInCents)}`
-      : "Total indisponivel";
+      : "Total indisponível";
 
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>

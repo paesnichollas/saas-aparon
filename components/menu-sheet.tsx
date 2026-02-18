@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   BarChart3,
@@ -109,7 +109,7 @@ const MenuSheet = ({
               </div>
             ) : (
               <>
-                <p className="font-semibold">Ola. Faca seu login!</p>
+                <p className="font-semibold">Olá. Faça seu login!</p>
                 <Button asChild className="gap-3 rounded-full">
                   <Link href="/auth">
                     Login
@@ -127,7 +127,7 @@ const MenuSheet = ({
                 className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
               >
                 <Home className="size-4" />
-                Inicio
+                Início
               </Link>
             </SheetClose>
             <SheetClose asChild>
