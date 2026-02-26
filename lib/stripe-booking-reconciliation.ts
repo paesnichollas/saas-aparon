@@ -4,6 +4,7 @@ import {
   cancelPendingBookingNotificationJobs,
   scheduleBookingNotificationJobs,
 } from "@/lib/notifications/notification-jobs";
+import { tryFulfillWaitlistForReleasedSlot } from "@/lib/waitlist-fulfillment";
 import Stripe from "stripe";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-01-28.clover";
@@ -17,6 +18,13 @@ type BookingReconciliationRecord = Prisma.BookingGetPayload<{
     stripeSessionId: true;
     stripeChargeId: true;
     paymentStatus: true;
+    barbershopId: true;
+    barberId: true;
+    serviceId: true;
+    date: true;
+    startAt: true;
+    endAt: true;
+    totalDurationMinutes: true;
   };
 }>;
 
@@ -136,6 +144,28 @@ const reconcilePendingBooking = async ({
 
     await cancelPendingBookingNotificationJobs(booking.id, "payment_failed");
 
+    try {
+      await tryFulfillWaitlistForReleasedSlot({
+        sourceBookingId: booking.id,
+        barbershopId: booking.barbershopId,
+        barberId: booking.barberId,
+        serviceId: booking.serviceId,
+        releasedStartAt: booking.startAt ?? booking.date,
+        releasedEndAt: booking.endAt,
+        releasedDurationMinutes: booking.totalDurationMinutes,
+      });
+    } catch (error) {
+      console.error(
+        "[stripeBookingReconciliation] Failed to fulfill waitlist after failed booking.",
+        {
+          error,
+          bookingId: booking.id,
+          stripeSessionId: booking.stripeSessionId,
+          source,
+        },
+      );
+    }
+
     logReconciliation("updated-failed", {
       source,
       bookingId: booking.id,
@@ -193,6 +223,13 @@ export const reconcilePendingBookingBySessionId = async ({
       stripeSessionId: true,
       stripeChargeId: true,
       paymentStatus: true,
+      barbershopId: true,
+      barberId: true,
+      serviceId: true,
+      date: true,
+      startAt: true,
+      endAt: true,
+      totalDurationMinutes: true,
     },
   });
 
@@ -252,6 +289,13 @@ export const reconcilePendingBookingsForUser = async (
       stripeSessionId: true,
       stripeChargeId: true,
       paymentStatus: true,
+      barbershopId: true,
+      barberId: true,
+      serviceId: true,
+      date: true,
+      startAt: true,
+      endAt: true,
+      totalDurationMinutes: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -320,6 +364,13 @@ export const reconcilePendingBookingsForBarbershop = async (
       stripeSessionId: true,
       stripeChargeId: true,
       paymentStatus: true,
+      barbershopId: true,
+      barberId: true,
+      serviceId: true,
+      date: true,
+      startAt: true,
+      endAt: true,
+      totalDurationMinutes: true,
     },
     orderBy: {
       createdAt: "desc",

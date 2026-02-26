@@ -4,6 +4,7 @@ import {
   cancelPendingBookingNotificationJobs,
   scheduleBookingNotificationJobs,
 } from "@/lib/notifications/notification-jobs";
+import { tryFulfillWaitlistForReleasedSlot } from "@/lib/waitlist-fulfillment";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -142,6 +143,13 @@ const failCheckoutSessionBooking = async (
     select: {
       id: true,
       paymentStatus: true,
+      barbershopId: true,
+      barberId: true,
+      serviceId: true,
+      date: true,
+      startAt: true,
+      endAt: true,
+      totalDurationMinutes: true,
     },
   });
 
@@ -172,6 +180,25 @@ const failCheckoutSessionBooking = async (
   });
 
   await cancelPendingBookingNotificationJobs(existingBooking.id, "payment_failed");
+
+  try {
+    await tryFulfillWaitlistForReleasedSlot({
+      sourceBookingId: existingBooking.id,
+      barbershopId: existingBooking.barbershopId,
+      barberId: existingBooking.barberId,
+      serviceId: existingBooking.serviceId,
+      releasedStartAt: existingBooking.startAt ?? existingBooking.date,
+      releasedEndAt: existingBooking.endAt,
+      releasedDurationMinutes: existingBooking.totalDurationMinutes,
+    });
+  } catch (error) {
+    console.error("[stripeWebhook] Failed to fulfill waitlist after failed session.", {
+      error,
+      bookingId: existingBooking.id,
+      sessionId: session.id,
+    });
+  }
+
   revalidateBookingSurfaces();
 
   console.info("[stripeWebhook] Checkout session marked as failed.", {

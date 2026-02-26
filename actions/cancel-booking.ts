@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { cancelPendingBookingNotificationJobs } from "@/lib/notifications/notification-jobs";
 import { isFuture } from "date-fns";
 import { revalidateBookingSurfaces } from "@/lib/cache-invalidation";
+import { tryFulfillWaitlistForReleasedSlot } from "@/lib/waitlist-fulfillment";
 import Stripe from "stripe";
 
 const inputSchema = z.object({
@@ -19,6 +20,19 @@ export const cancelBooking = protectedActionClient
     const booking = await prisma.booking.findUnique({
       where: {
         id: bookingId,
+      },
+      select: {
+        id: true,
+        userId: true,
+        cancelledAt: true,
+        stripeChargeId: true,
+        date: true,
+        startAt: true,
+        endAt: true,
+        totalDurationMinutes: true,
+        barbershopId: true,
+        barberId: true,
+        serviceId: true,
       },
     });
     if (!booking) {
@@ -73,6 +87,24 @@ export const cancelBooking = protectedActionClient
       },
     });
     await cancelPendingBookingNotificationJobs(bookingId, "booking_canceled");
+
+    try {
+      await tryFulfillWaitlistForReleasedSlot({
+        sourceBookingId: booking.id,
+        barbershopId: booking.barbershopId,
+        barberId: booking.barberId,
+        serviceId: booking.serviceId,
+        releasedStartAt: booking.startAt ?? booking.date,
+        releasedEndAt: booking.endAt,
+        releasedDurationMinutes: booking.totalDurationMinutes,
+      });
+    } catch (error) {
+      console.error("[cancelBooking] Failed to fulfill waitlist after cancel.", {
+        error,
+        bookingId: booking.id,
+      });
+    }
+
     revalidateBookingSurfaces();
 
     return cancelledBooking;
