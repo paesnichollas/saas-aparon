@@ -2,6 +2,8 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import BookingItem from "@/components/booking-item";
 import OwnerBookingsList from "@/components/bookings/owner-bookings-list";
+import WaitlistFulfillmentBanner from "@/components/bookings/waitlist-fulfillment-banner";
+import WaitlistList from "@/components/bookings/waitlist-list";
 import {
   Card,
   CardContent,
@@ -10,6 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getOwnerBarbershopBookings, getUserBookings } from "@/data/bookings";
+import {
+  getUserUnseenFulfilledWaitlistEntries,
+  getUserWaitlistEntries,
+} from "@/data/waitlist";
 import { requireAuthenticatedUser } from "@/lib/rbac";
 import {
   PageContainer,
@@ -72,15 +78,29 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
   const stripeSessionId = Array.isArray(resolvedSearchParams.session_id)
     ? resolvedSearchParams.session_id[0]
     : resolvedSearchParams.session_id;
-  const { confirmedBookings, finishedBookings } = await getUserBookings({
-    stripeSessionId,
-  });
+  const [
+    { confirmedBookings, finishedBookings },
+    waitlistEntries,
+    unseenFulfilledWaitlistEntries,
+  ] = await Promise.all([
+    getUserBookings({
+      stripeSessionId,
+    }),
+    getUserWaitlistEntries(),
+    getUserUnseenFulfilledWaitlistEntries(),
+  ]);
 
   return (
     <div>
       <Header />
       <PageContainer>
         <h1 className="text-xl font-bold">Meus agendamentos</h1>
+
+        {unseenFulfilledWaitlistEntries.length > 0 ? (
+          <PageSectionContent>
+            <WaitlistFulfillmentBanner entries={unseenFulfilledWaitlistEntries} />
+          </PageSectionContent>
+        ) : null}
 
         <PageSectionContent>
           <PageSectionTitle>Confirmados</PageSectionTitle>
@@ -110,6 +130,14 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
               Nenhum agendamento finalizado.
             </p>
           )}
+        </PageSectionContent>
+
+        <PageSectionContent>
+          <PageSectionTitle>Fila de espera</PageSectionTitle>
+          <WaitlistList
+            entries={waitlistEntries}
+            emptyMessage="Voce nao possui entradas na fila de espera."
+          />
         </PageSectionContent>
       </PageContainer>
       <Footer />

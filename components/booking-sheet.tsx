@@ -1,14 +1,20 @@
 "use client";
 
 import { createBookingCheckoutSession } from "@/actions/create-booking-checkout-session";
+import { joinWaitlist } from "@/actions/join-waitlist";
+import { leaveWaitlist } from "@/actions/leave-waitlist";
+import { queryKeys } from "@/constants/query-keys";
+import { Barber, Barbershop, BarbershopService } from "@/generated/prisma/client";
 import { useGetDateAvailableTimeSlots } from "@/hooks/data/use-get-date-availabe-time-slots";
+import { useGetWaitlistStatusForDay } from "@/hooks/data/use-get-waitlist-status-for-day";
+import { getBookingDateKey } from "@/lib/booking-time";
 import {
   buildCompleteProfileUrl,
   isProfileIncompleteCode,
 } from "@/lib/profile-completion";
 import { cn, formatCurrency } from "@/lib/utils";
-import { Barber, Barbershop, BarbershopService } from "@/generated/prisma/client";
 import { loadStripe } from "@stripe/stripe-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { ptBR } from "date-fns/locale";
 import { Check, Loader2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -34,6 +40,7 @@ interface BookingSheetProps {
 }
 
 const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
+  const queryClient = useQueryClient();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [sheetIsOpen, setSheetIsOpen] = useState(false);
@@ -46,6 +53,10 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
   const { executeAsync: executeCreateBooking, isPending: isCreatingBooking } =
     useAction(createBookingCheckoutSession);
+  const { executeAsync: executeJoinWaitlist, isPending: isJoiningWaitlist } =
+    useAction(joinWaitlist);
+  const { executeAsync: executeLeaveWaitlist, isPending: isLeavingWaitlist } =
+    useAction(leaveWaitlist);
 
   const { data: availableTimeSlots, isPending: isLoadingTimeSlots } =
     useGetDateAvailableTimeSlots({
@@ -53,6 +64,24 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
       barberId: selectedBarberId,
       serviceIds: selectedServiceIds,
       date: selectedDate,
+    });
+
+  const selectedSingleServiceId =
+    selectedServiceIds.length === 1 ? selectedServiceIds[0] : undefined;
+  const selectedDateDay = useMemo(() => {
+    if (!selectedDate) {
+      return undefined;
+    }
+
+    return getBookingDateKey(selectedDate);
+  }, [selectedDate]);
+
+  const { data: waitlistStatusResult, isPending: isLoadingWaitlistStatus } =
+    useGetWaitlistStatusForDay({
+      barbershopId: barbershop.id,
+      barberId: selectedBarberId,
+      serviceId: selectedSingleServiceId,
+      dateDay: selectedDateDay,
     });
 
   const selectedBarber = useMemo(() => {
@@ -75,6 +104,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
       return accumulator + service.priceInCents;
     }, 0);
   }, [selectedServices]);
+
   const currentReturnToPath = useMemo(() => {
     const search = searchParams.toString();
 
@@ -92,6 +122,12 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
       selectedServiceIds.length > 0 &&
       totalDurationMinutes > 0,
   );
+  const hasAvailableTimeSlots = Boolean(availableTimeSlots?.data?.length);
+  const waitlistStatus =
+    selectedSingleServiceId && selectedDateDay
+      ? waitlistStatusResult?.data ?? null
+      : null;
+  const isWaitlistActionPending = isJoiningWaitlist || isLeavingWaitlist;
 
   const handleBarberSelect = (barberId: string) => {
     setSelectedBarberId(barberId);
@@ -112,6 +148,68 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
       return [...previousServiceIds, serviceId];
     });
     setSelectedTime(undefined);
+  };
+
+  const invalidateWaitlistStatus = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.getWaitlistStatusForDay(
+        barbershop.id,
+        selectedBarberId,
+        selectedSingleServiceId,
+        selectedDateDay,
+      ),
+    });
+  };
+
+  const handleJoinWaitlist = async () => {
+    if (!selectedBarberId || !selectedSingleServiceId || !selectedDateDay) {
+      return;
+    }
+
+    const result = await executeJoinWaitlist({
+      barbershopId: barbershop.id,
+      barberId: selectedBarberId,
+      serviceId: selectedSingleServiceId,
+      dateDay: selectedDateDay,
+    });
+
+    if (result.validationErrors) {
+      return toast.error(
+        result.validationErrors._errors?.[0] ??
+          "Nao foi possivel entrar na fila de espera.",
+      );
+    }
+
+    if (result.serverError) {
+      return toast.error("Nao foi possivel entrar na fila de espera.");
+    }
+
+    toast.success("Voce entrou na fila de espera.");
+    await invalidateWaitlistStatus();
+  };
+
+  const handleLeaveWaitlist = async () => {
+    if (!waitlistStatus?.entryId) {
+      return;
+    }
+
+    const result = await executeLeaveWaitlist({
+      entryId: waitlistStatus.entryId,
+    });
+
+    if (result.validationErrors) {
+      return toast.error(
+        result.validationErrors._errors?.[0] ??
+          "Nao foi possivel sair da fila de espera.",
+      );
+    }
+
+    if (result.serverError) {
+      return toast.error("Nao foi possivel sair da fila de espera.");
+    }
+
+    toast.success("Voce saiu da fila de espera.");
+    await invalidateWaitlistStatus();
   };
 
   const handleConfirmBooking = async () => {
@@ -179,10 +277,12 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
       <SheetTrigger asChild>
-        <Button className="w-full rounded-full">Reservar</Button>
+        <Button className="w-full rounded-full" data-testid="booking-open-sheet">
+          Reservar
+        </Button>
       </SheetTrigger>
 
-      <SheetContent className="overflow-y-auto px-0 pb-0">
+      <SheetContent className="overflow-y-auto px-0 pb-0" data-testid="booking-sheet">
         <SheetHeader className="border-border border-b px-5 py-6">
           <SheetTitle>Fazer Agendamento</SheetTitle>
         </SheetHeader>
@@ -197,6 +297,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
                   variant={selectedBarberId === barber.id ? "default" : "outline"}
                   className="rounded-full"
                   onClick={() => handleBarberSelect(barber.id)}
+                  data-testid={`booking-barber-${barber.id}`}
                 >
                   {barber.name}
                 </Button>
@@ -206,33 +307,35 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
           <div className="space-y-3">
             <p className="text-sm font-semibold">2. Escolha o dia</p>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              locale={ptBR}
-              className="w-full p-0"
-              disabled={{ before: new Date() }}
-              classNames={{
-                cell: "w-full",
-                day: "mx-auto h-9 w-9 rounded-full bg-transparent text-sm hover:bg-muted data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground",
-                head_cell:
-                  "w-full text-xs font-normal text-muted-foreground capitalize",
-                caption: "capitalize",
-                caption_label: "text-base font-bold",
-                nav: "absolute right-0 top-0 z-10 flex gap-1",
-                nav_button_previous:
-                  "h-7 w-7 rounded-lg border border-border bg-transparent hover:bg-transparent hover:opacity-100",
-                nav_button_next:
-                  "h-7 w-7 rounded-lg bg-muted text-muted-foreground hover:bg-muted hover:opacity-100",
-                month_caption:
-                  "relative flex w-full items-center justify-start px-0 pt-1",
-              }}
-            />
+            <div data-testid="booking-calendar">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                locale={ptBR}
+                className="w-full p-0"
+                disabled={{ before: new Date() }}
+                classNames={{
+                  cell: "w-full",
+                  day: "mx-auto h-9 w-9 rounded-full bg-transparent text-sm hover:bg-muted data-[selected=true]:bg-primary data-[selected=true]:text-primary-foreground",
+                  head_cell:
+                    "w-full text-xs font-normal text-muted-foreground capitalize",
+                  caption: "capitalize",
+                  caption_label: "text-base font-bold",
+                  nav: "absolute right-0 top-0 z-10 flex gap-1",
+                  nav_button_previous:
+                    "h-7 w-7 rounded-lg border border-border bg-transparent hover:bg-transparent hover:opacity-100",
+                  nav_button_next:
+                    "h-7 w-7 rounded-lg bg-muted text-muted-foreground hover:bg-muted hover:opacity-100",
+                  month_caption:
+                    "relative flex w-full items-center justify-start px-0 pt-1",
+                }}
+              />
+            </div>
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-semibold">3. Escolha os serviços</p>
+            <p className="text-sm font-semibold">3. Escolha os servicos</p>
             <div className="space-y-2">
               {services.map((service) => {
                 const isSelected = selectedServiceIds.includes(service.id);
@@ -246,6 +349,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
                       isSelected ? "border-primary bg-primary/5" : undefined,
                     )}
                     onClick={() => handleServiceToggle(service.id)}
+                    data-testid={`booking-service-${service.id}`}
                   >
                     <div>
                       <p className="text-sm font-semibold">{service.name}</p>
@@ -271,29 +375,82 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
           {selectedDate && selectedBarberId && selectedServiceIds.length > 0 ? (
             <div className="space-y-3">
-              <p className="text-sm font-semibold">4. Escolha o horário</p>
+              <p className="text-sm font-semibold">4. Escolha o horario</p>
               {isLoadingTimeSlots ? (
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
                   <Loader2 className="size-4 animate-spin" />
-                  Carregando horários...
+                  Carregando horarios...
                 </div>
-              ) : availableTimeSlots?.data?.length ? (
+              ) : hasAvailableTimeSlots ? (
                 <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
-                  {availableTimeSlots.data.map((time) => (
+                  {availableTimeSlots?.data?.map((time) => (
                     <Button
                       key={time}
                       variant={selectedTime === time ? "default" : "outline"}
                       className="rounded-full"
                       onClick={() => setSelectedTime(time)}
+                      data-testid={`booking-time-${time}`}
                     >
                       {time}
                     </Button>
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm">
-                  Nenhum horário disponível para esta combinação.
-                </p>
+                <div className="space-y-3">
+                  <p className="text-muted-foreground text-sm">
+                    Nenhum horario disponivel para esta combinacao.
+                  </p>
+
+                  {selectedServiceIds.length !== 1 ? (
+                    <p className="text-muted-foreground text-xs">
+                      Para entrar na fila de espera, selecione apenas um servico.
+                    </p>
+                  ) : isLoadingWaitlistStatus ? (
+                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
+                      <Loader2 className="size-4 animate-spin" />
+                      Carregando status da fila...
+                    </div>
+                  ) : waitlistStatus?.isInQueue ? (
+                    <div className="bg-card border-border space-y-3 rounded-xl border p-3">
+                      <p className="text-sm">
+                        Voce esta na fila de espera (posicao {waitlistStatus.position} de{" "}
+                        {waitlistStatus.queueLength}).
+                      </p>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={isWaitlistActionPending}
+                        onClick={handleLeaveWaitlist}
+                        data-testid="booking-waitlist-leave"
+                      >
+                        {isLeavingWaitlist ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Sair da fila"
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="bg-card border-border space-y-3 rounded-xl border p-3">
+                      <p className="text-sm">
+                        Nao ha vagas para este dia. Entre na fila e seja avisado quando
+                        uma vaga abrir.
+                      </p>
+                      <Button
+                        className="w-full"
+                        disabled={isWaitlistActionPending}
+                        onClick={handleJoinWaitlist}
+                        data-testid="booking-waitlist-join"
+                      >
+                        {isJoiningWaitlist ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Entrar na fila de espera"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ) : null}
@@ -323,6 +480,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
             className="w-full"
             disabled={!canConfirmBooking || isCreatingBooking}
             onClick={handleConfirmBooking}
+            data-testid="booking-confirm"
           >
             {isCreatingBooking ? (
               <Loader2 className="size-4 animate-spin" />
