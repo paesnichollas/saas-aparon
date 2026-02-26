@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   CartesianGrid,
   Line,
@@ -12,11 +12,15 @@ import {
   YAxis,
 } from "recharts";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getBookingCurrentMonth, getBookingCurrentYear } from "@/lib/booking-time";
 import { formatCurrency } from "@/lib/utils";
-
-type SummaryPeriod = "week" | "month" | "year";
 
 type MonthlySummaryMonth = {
   month: number;
@@ -57,6 +61,15 @@ type ReportSummaryData = {
   };
 };
 
+type ReportDashboardData = {
+  monthlySummary: MonthlySummaryData;
+  summaries: {
+    week: ReportSummaryData;
+    month: ReportSummaryData;
+    year: ReportSummaryData;
+  };
+};
+
 type NormalizedMonthlySummaryMonth = Omit<MonthlySummaryMonth, "avgTicket"> & {
   avgTicket: number;
 };
@@ -93,7 +106,7 @@ type KpiCardProps = {
 const monthlySummaryMonthLabels = [
   "Janeiro",
   "Fevereiro",
-  "Março",
+  "Marco",
   "Abril",
   "Maio",
   "Junho",
@@ -230,6 +243,21 @@ const hasSummaryShape = (value: unknown): value is ReportSummaryData => {
   );
 };
 
+const hasDashboardShape = (value: unknown): value is ReportDashboardData => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const parsedValue = value as Partial<ReportDashboardData>;
+
+  return (
+    hasMonthlySummaryShape(parsedValue.monthlySummary) &&
+    hasSummaryShape(parsedValue.summaries?.week) &&
+    hasSummaryShape(parsedValue.summaries?.month) &&
+    hasSummaryShape(parsedValue.summaries?.year)
+  );
+};
+
 const formatDateLabel = (isoDate: string) => {
   const parsedDate = new Date(isoDate);
 
@@ -241,7 +269,7 @@ const formatDateLabel = (isoDate: string) => {
 };
 
 const formatDateRangeLabel = (rangeStart: string, rangeEnd: string) => {
-  return `${formatDateLabel(rangeStart)} até ${formatDateLabel(rangeEnd)}`;
+  return `${formatDateLabel(rangeStart)} ate ${formatDateLabel(rangeEnd)}`;
 };
 
 const formatPercentLabel = (value: number | null) => {
@@ -340,7 +368,7 @@ const KpiCard = ({ title, summary, isPending, comparisonLabel }: KpiCardProps) =
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Ticket médio</p>
+              <p className="text-muted-foreground text-xs">Ticket medio</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(summary?.current.avgTicket ?? 0)}
               </p>
@@ -397,7 +425,7 @@ const AnnualChartTooltip = ({
           Faturamento: {formatCurrency(chartPoint.revenue)}
         </p>
         <p className="text-muted-foreground text-xs">
-          Ticket médio: {formatCurrency(chartPoint.avgTicket)}
+          Ticket medio: {formatCurrency(chartPoint.avgTicket)}
         </p>
       </CardContent>
     </Card>
@@ -427,19 +455,15 @@ const OwnerReportsCard = ({
     }),
   );
 
-  const [monthlySummary, setMonthlySummary] = useState<MonthlySummaryData | null>(null);
-  const [monthlySummaryError, setMonthlySummaryError] = useState<string | null>(null);
-  const [isMonthlySummaryPending, setIsMonthlySummaryPending] = useState(false);
-
-  const [summaries, setSummaries] = useState<Record<SummaryPeriod, ReportSummaryData | null>>({
-    week: null,
-    month: null,
-    year: null,
-  });
-  const [summaryError, setSummaryError] = useState<string | null>(null);
-  const [isSummaryPending, setIsSummaryPending] = useState(false);
+  const [dashboardData, setDashboardData] = useState<ReportDashboardData | null>(
+    null,
+  );
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [isDashboardPending, setIsDashboardPending] = useState(false);
+  const [isFilterTransitionPending, startFilterTransition] = useTransition();
 
   const canLoadReport = !isAdmin || selectedBarbershopId.length > 0;
+  const isFilterControlDisabled = isDashboardPending || isFilterTransitionPending;
   const yearOptions = useMemo(
     () => buildYearOptions(currentBookingYear),
     [currentBookingYear],
@@ -458,30 +482,21 @@ const OwnerReportsCard = ({
   }, [barbershopOptions, isAdmin, selectedBarbershopId]);
 
   useEffect(() => {
-    setSelectedMonth(
-      getInitialMonthForYear({
-        year: selectedYear,
-        currentYear: currentBookingYear,
-        currentMonth: currentBookingMonth,
-      }),
-    );
-  }, [currentBookingMonth, currentBookingYear, selectedYear]);
-
-  useEffect(() => {
     if (!canLoadReport) {
-      setMonthlySummary(null);
-      setMonthlySummaryError(null);
+      setDashboardData(null);
+      setDashboardError(null);
       return;
     }
 
     const abortController = new AbortController();
 
-    const loadMonthlySummary = async () => {
-      setIsMonthlySummaryPending(true);
-      setMonthlySummaryError(null);
+    const loadDashboard = async () => {
+      setIsDashboardPending(true);
+      setDashboardError(null);
 
       const queryParams = new URLSearchParams({
         year: String(selectedYear),
+        month: String(selectedMonth),
       });
 
       if (selectedBarbershopId) {
@@ -489,148 +504,91 @@ const OwnerReportsCard = ({
       }
 
       try {
-        const response = await fetch(
-          `/api/reports/monthly-summary?${queryParams.toString()}`,
-          {
-            method: "GET",
-            cache: "no-store",
-            signal: abortController.signal,
-          },
-        );
+        const response = await fetch(`/api/reports/dashboard?${queryParams.toString()}`, {
+          method: "GET",
+          cache: "no-store",
+          signal: abortController.signal,
+        });
         const responseData = (await response.json()) as unknown;
 
         if (!response.ok) {
           const errorMessage =
-            getApiErrorMessage(responseData) ??
-            "Não foi possível carregar o resumo mensal.";
+            getApiErrorMessage(responseData) ?? "Nao foi possivel carregar o relatorio.";
           throw new Error(errorMessage);
         }
 
-        if (!hasMonthlySummaryShape(responseData)) {
-          throw new Error("Resumo mensal inválido.");
+        if (!hasDashboardShape(responseData)) {
+          throw new Error("Relatorio invalido.");
         }
 
-        setMonthlySummary(responseData);
+        setDashboardData(responseData);
       } catch (error) {
         if (abortController.signal.aborted) {
           return;
         }
 
-        setMonthlySummary(null);
-        setMonthlySummaryError(
+        setDashboardData(null);
+        setDashboardError(
           error instanceof Error
             ? error.message
-            : "Não foi possível carregar o resumo mensal.",
+            : "Nao foi possivel carregar o relatorio.",
         );
       } finally {
         if (!abortController.signal.aborted) {
-          setIsMonthlySummaryPending(false);
+          setIsDashboardPending(false);
         }
       }
     };
 
-    loadMonthlySummary();
-
-    return () => {
-      abortController.abort();
-    };
-  }, [canLoadReport, selectedBarbershopId, selectedYear]);
-
-  useEffect(() => {
-    if (!canLoadReport) {
-      setSummaries({
-        week: null,
-        month: null,
-        year: null,
-      });
-      setSummaryError(null);
-      return;
-    }
-
-    const abortController = new AbortController();
-
-    const loadSummary = async (period: SummaryPeriod) => {
-      const queryParams = new URLSearchParams({
-        period,
-        year: String(selectedYear),
-      });
-
-      if (period === "month") {
-        queryParams.set("month", String(selectedMonth));
-      }
-
-      if (selectedBarbershopId) {
-        queryParams.set("barbershopId", selectedBarbershopId);
-      }
-
-      const response = await fetch(`/api/reports/summary?${queryParams.toString()}`, {
-        method: "GET",
-        cache: "no-store",
-        signal: abortController.signal,
-      });
-      const responseData = (await response.json()) as unknown;
-
-      if (!response.ok) {
-        const errorMessage =
-          getApiErrorMessage(responseData) ??
-          "Não foi possível carregar os indicadores.";
-        throw new Error(errorMessage);
-      }
-
-      if (!hasSummaryShape(responseData)) {
-        throw new Error("Indicador inválido.");
-      }
-
-      return responseData;
-    };
-
-    const loadSummaries = async () => {
-      setIsSummaryPending(true);
-      setSummaryError(null);
-
-      try {
-        const [weekSummary, monthSummary, yearSummary] = await Promise.all([
-          loadSummary("week"),
-          loadSummary("month"),
-          loadSummary("year"),
-        ]);
-
-        setSummaries({
-          week: weekSummary,
-          month: monthSummary,
-          year: yearSummary,
-        });
-      } catch (error) {
-        if (abortController.signal.aborted) {
-          return;
-        }
-
-        setSummaries({
-          week: null,
-          month: null,
-          year: null,
-        });
-        setSummaryError(
-          error instanceof Error
-            ? error.message
-            : "Não foi possível carregar os indicadores.",
-        );
-      } finally {
-        if (!abortController.signal.aborted) {
-          setIsSummaryPending(false);
-        }
-      }
-    };
-
-    loadSummaries();
+    loadDashboard();
 
     return () => {
       abortController.abort();
     };
   }, [canLoadReport, selectedBarbershopId, selectedMonth, selectedYear]);
 
+  const handleYearChange = (yearValue: string) => {
+    const parsedYear = Number(yearValue);
+
+    if (Number.isNaN(parsedYear)) {
+      return;
+    }
+
+    startFilterTransition(() => {
+      setSelectedYear(parsedYear);
+      setSelectedMonth(
+        getInitialMonthForYear({
+          year: parsedYear,
+          currentYear: currentBookingYear,
+          currentMonth: currentBookingMonth,
+        }),
+      );
+    });
+  };
+
+  const handleMonthChange = (monthValue: string) => {
+    const parsedMonth = parseMonthValue(monthValue);
+
+    if (!parsedMonth) {
+      return;
+    }
+
+    startFilterTransition(() => {
+      setSelectedMonth(parsedMonth);
+    });
+  };
+
+  const handleBarbershopChange = (barbershopId: string) => {
+    startFilterTransition(() => {
+      setSelectedBarbershopId(barbershopId);
+    });
+  };
+
+  const monthlySummary = dashboardData?.monthlySummary ?? null;
+  const summaries = dashboardData?.summaries ?? null;
+
   const normalizedMonths = useMemo(() => {
-    if (!monthlySummary || monthlySummaryError) {
+    if (!monthlySummary || dashboardError) {
       return monthlySummaryMonthsFallback;
     }
 
@@ -644,12 +602,16 @@ const OwnerReportsCard = ({
           ? month.avgTicket
           : calculateAverageTicket(month.revenue, month.totalBookings),
     }));
-  }, [monthlySummary, monthlySummaryError]);
+  }, [dashboardError, monthlySummary]);
 
   const detailsMonth = useMemo(() => {
     const month = normalizedMonths.find((item) => item.month === selectedMonth);
 
-    return month ?? monthlySummaryMonthsFallback[selectedMonth - 1] ?? monthlySummaryMonthsFallback[0];
+    return (
+      month ??
+      monthlySummaryMonthsFallback[selectedMonth - 1] ??
+      monthlySummaryMonthsFallback[0]
+    );
   }, [normalizedMonths, selectedMonth]);
 
   const chartData = useMemo<ChartPoint[]>(() => {
@@ -673,9 +635,9 @@ const OwnerReportsCard = ({
   }, [normalizedMonths]);
 
   return (
-    <Card>
+    <Card data-testid="owner-reports-card">
       <CardHeader>
-        <CardTitle>Relatório</CardTitle>
+        <CardTitle>Relatorio</CardTitle>
         <CardDescription>
           Indicadores semanais, mensais e anuais para acompanhar desempenho e
           faturamento.
@@ -691,15 +653,10 @@ const OwnerReportsCard = ({
             <select
               id="owner-report-year"
               value={selectedYear}
-              onChange={(event) => {
-                const parsedYear = Number(event.target.value);
-
-                if (!Number.isNaN(parsedYear)) {
-                  setSelectedYear(parsedYear);
-                }
-              }}
-              disabled={isMonthlySummaryPending || isSummaryPending}
+              onChange={(event) => handleYearChange(event.target.value)}
+              disabled={isFilterControlDisabled}
               className="bg-background border-input h-9 w-full rounded-md border px-3 text-sm"
+              data-testid="owner-report-year"
             >
               {yearOptions.map((year) => (
                 <option key={year} value={year}>
@@ -711,26 +668,20 @@ const OwnerReportsCard = ({
 
           <div className="space-y-2">
             <label htmlFor="owner-report-month" className="text-sm font-medium">
-              Mês
+              Mes
             </label>
             <select
               id="owner-report-month"
               value={selectedMonth}
-              onChange={(event) => {
-                const parsedMonth = parseMonthValue(event.target.value);
-
-                if (parsedMonth) {
-                  setSelectedMonth(parsedMonth);
-                }
-              }}
-              disabled={!canLoadReport || isSummaryPending || isMonthlySummaryPending}
+              onChange={(event) => handleMonthChange(event.target.value)}
+              disabled={!canLoadReport || isFilterControlDisabled}
               className="bg-background border-input h-9 w-full rounded-md border px-3 text-sm"
+              data-testid="owner-report-month"
             >
               {monthlySummaryMonthLabels.map((label, index) => {
                 const monthNumber = index + 1;
                 const isFutureMonth =
-                  selectedYear === currentBookingYear &&
-                  monthNumber > currentBookingMonth;
+                  selectedYear === currentBookingYear && monthNumber > currentBookingMonth;
 
                 return (
                   <option key={label} value={monthNumber} disabled={isFutureMonth}>
@@ -744,18 +695,16 @@ const OwnerReportsCard = ({
 
           {isAdmin ? (
             <div className="space-y-2">
-              <label
-                htmlFor="owner-report-barbershop"
-                className="text-sm font-medium"
-              >
+              <label htmlFor="owner-report-barbershop" className="text-sm font-medium">
                 Barbearia
               </label>
               <select
                 id="owner-report-barbershop"
                 value={selectedBarbershopId}
-                onChange={(event) => setSelectedBarbershopId(event.target.value)}
-                disabled={isSummaryPending || isMonthlySummaryPending}
+                onChange={(event) => handleBarbershopChange(event.target.value)}
+                disabled={isFilterControlDisabled}
                 className="bg-background border-input h-9 w-full rounded-md border px-3 text-sm"
+                data-testid="owner-report-barbershop"
               >
                 <option value="">Selecione uma barbearia</option>
                 {barbershopOptions.map((barbershop) => (
@@ -770,43 +719,35 @@ const OwnerReportsCard = ({
 
         {!canLoadReport ? (
           <p className="text-muted-foreground text-sm">
-            Selecione uma barbearia para visualizar o relatório.
+            Selecione uma barbearia para visualizar o relatorio.
           </p>
         ) : null}
 
-        {summaryError ? (
+        {dashboardError ? (
           <Card className="border-destructive/30">
             <CardContent>
-              <p className="text-sm font-medium">{summaryError}</p>
+              <p className="text-sm font-medium">{dashboardError}</p>
             </CardContent>
           </Card>
         ) : null}
 
-        {monthlySummaryError ? (
-          <Card className="border-destructive/30">
-            <CardContent>
-              <p className="text-sm font-medium">{monthlySummaryError}</p>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        <div className="grid gap-3 lg:grid-cols-3">
+        <div className="grid gap-3 lg:grid-cols-3" data-testid="owner-report-kpis">
           <KpiCard
             title="Semanal"
-            summary={summaries.week}
-            isPending={isSummaryPending}
+            summary={summaries?.week ?? null}
+            isPending={isFilterControlDisabled}
             comparisonLabel="Comparado com a semana anterior"
           />
           <KpiCard
             title="Mensal"
-            summary={summaries.month}
-            isPending={isSummaryPending}
-            comparisonLabel="Comparado com o mês anterior"
+            summary={summaries?.month ?? null}
+            isPending={isFilterControlDisabled}
+            comparisonLabel="Comparado com o mes anterior"
           />
           <KpiCard
             title="Anual"
-            summary={summaries.year}
-            isPending={isSummaryPending}
+            summary={summaries?.year ?? null}
+            isPending={isFilterControlDisabled}
             comparisonLabel="Comparado com o ano anterior"
           />
         </div>
@@ -815,11 +756,11 @@ const OwnerReportsCard = ({
           <CardHeader>
             <CardTitle className="text-base">Evolucao anual ({selectedYear})</CardTitle>
             <CardDescription>
-              Faturamento de janeiro a dezembro com tooltip por mês.
+              Faturamento de janeiro a dezembro com tooltip por mes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {isMonthlySummaryPending && !monthlySummary ? (
+            {isDashboardPending && !monthlySummary ? (
               <div className="bg-muted h-[18rem] animate-pulse rounded-md" />
             ) : (
               <div className="h-[20rem] w-full">
@@ -878,8 +819,8 @@ const OwnerReportsCard = ({
               </div>
             )}
 
-            {isYearEmpty && !isMonthlySummaryPending ? (
-              <p className="text-muted-foreground text-sm">Sem agendamentos no período.</p>
+            {isYearEmpty && !isDashboardPending ? (
+              <p className="text-muted-foreground text-sm">Sem agendamentos no periodo.</p>
             ) : null}
           </CardContent>
         </Card>
@@ -887,16 +828,16 @@ const OwnerReportsCard = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Detalhes do mês: {detailsMonth.label}/{selectedYear}
+              Detalhes do mes: {detailsMonth.label}/{selectedYear}
             </CardTitle>
             <CardDescription>
-              Resumo do mês selecionado no dropdown.
+              Resumo do mes selecionado no dropdown.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 md:grid-cols-3">
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Agendamentos no mês</CardDescription>
+                <CardDescription>Agendamentos no mes</CardDescription>
                 <CardTitle className="text-2xl">
                   {detailsMonth.totalBookings.toLocaleString("pt-BR")}
                 </CardTitle>
@@ -904,7 +845,7 @@ const OwnerReportsCard = ({
             </Card>
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Faturamento no mês</CardDescription>
+                <CardDescription>Faturamento no mes</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(detailsMonth.revenue)}
                 </CardTitle>
@@ -912,7 +853,7 @@ const OwnerReportsCard = ({
             </Card>
             <Card className="border-dashed">
               <CardHeader className="space-y-1 pb-2">
-                <CardDescription>Ticket médio no mês</CardDescription>
+                <CardDescription>Ticket medio no mes</CardDescription>
                 <CardTitle className="text-2xl">
                   {formatCurrency(detailsMonth.avgTicket)}
                 </CardTitle>
