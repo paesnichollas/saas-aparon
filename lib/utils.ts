@@ -14,6 +14,13 @@ export function formatCurrency(cents: number) {
   }).format(cents / 100)
 }
 
+export function formatRating(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value)
+}
+
 export function formatPhoneBR(phoneNumber: string | null) {
   if (!phoneNumber) {
     return "";

@@ -9,47 +9,97 @@ import {
 } from "@/lib/stripe-booking-reconciliation";
 import { headers } from "next/headers";
 
-const BOOKING_SCALAR_SELECT = {
+const BOOKING_BASE_SELECT = {
   id: true,
-  stripeSessionId: true,
   stripeChargeId: true,
   paymentMethod: true,
   paymentStatus: true,
-  barbershopId: true,
-  barberId: true,
-  serviceId: true,
-  userId: true,
   totalDurationMinutes: true,
   totalPriceInCents: true,
   startAt: true,
   endAt: true,
-  paymentConfirmedAt: true,
   date: true,
   cancelledAt: true,
-  createdAt: true,
-  updatedAt: true,
 } satisfies Prisma.BookingSelect;
 
 const USER_BOOKING_SELECT = {
-  ...BOOKING_SCALAR_SELECT,
-  barbershop: true,
-  barber: true,
-  service: true,
+  ...BOOKING_BASE_SELECT,
+  barbershop: {
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      imageUrl: true,
+      phones: true,
+    },
+  },
+  barber: {
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+    },
+  },
+  service: {
+    select: {
+      id: true,
+      name: true,
+      priceInCents: true,
+      durationInMinutes: true,
+    },
+  },
+  review: {
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+    },
+  },
   services: {
     select: {
-      service: true,
+      service: {
+        select: {
+          id: true,
+          name: true,
+          priceInCents: true,
+          durationInMinutes: true,
+        },
+      },
     },
   },
 } satisfies Prisma.BookingSelect;
 
 const OWNER_BOOKING_SELECT = {
-  ...BOOKING_SCALAR_SELECT,
-  user: true,
-  barber: true,
-  service: true,
+  ...BOOKING_BASE_SELECT,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+    },
+  },
+  barber: {
+    select: {
+      id: true,
+      name: true,
+      imageUrl: true,
+    },
+  },
+  service: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   services: {
     select: {
-      service: true,
+      service: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   },
 } satisfies Prisma.BookingSelect;

@@ -47,6 +47,8 @@ export interface BarbershopListItem {
   imageUrl: string | null;
   slug: string;
   isExclusive: boolean;
+  avgRating: number;
+  ratingsCount: number;
 }
 
 const PUBLIC_SLUG_MAX_GENERATION_ATTEMPTS = 50;
@@ -76,6 +78,8 @@ const BARBERSHOP_SCALAR_SELECT = {
   bookingIntervalMinutes: true,
   stripeEnabled: true,
   isActive: true,
+  avgRating: true,
+  ratingsCount: true,
   ownerId: true,
 } satisfies Prisma.BarbershopSelect;
 
@@ -108,6 +112,8 @@ const BARBERSHOP_LIST_ITEM_SELECT = {
   imageUrl: true,
   slug: true,
   exclusiveBarber: true,
+  avgRating: true,
+  ratingsCount: true,
 } satisfies Prisma.BarbershopSelect;
 
 type BarbershopListRecord = Prisma.BarbershopGetPayload<{
@@ -124,6 +130,8 @@ const mapBarbershopListItem = (
     imageUrl: barbershop.imageUrl,
     slug: barbershop.slug,
     isExclusive: barbershop.exclusiveBarber,
+    avgRating: barbershop.avgRating,
+    ratingsCount: barbershop.ratingsCount,
   };
 };
 

@@ -30,6 +30,8 @@ import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { resolveBarbershopImageUrl } from "@/lib/image-fallback";
 import { formatPhoneBRDisplay } from "@/lib/phone";
+import { useState } from "react";
+import BookingReviewDialog from "./booking-review-dialog";
 
 interface BookingInfoSheetProps {
   booking: BookingWithRelations;
@@ -38,8 +40,16 @@ interface BookingInfoSheetProps {
 
 const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
   const bookingStartAt = getBookingStartDate(booking);
+  const bookingCompletionDate = booking.endAt ?? booking.date;
   const barbershopImageUrl = resolveBarbershopImageUrl(booking.barbershop.imageUrl);
   const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
+  const [hasReview, setHasReview] = useState(Boolean(booking.review));
+  const canCreateReview =
+    status === "finished" &&
+    !hasReview &&
+    booking.cancelledAt === null &&
+    booking.paymentStatus === "PAID" &&
+    bookingCompletionDate < new Date();
   const { executeAsync: executeCancelBooking, isPending: isCancelling } =
     useAction(cancelBooking);
   const bookingServices =
@@ -157,6 +167,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
           variant="outline"
           className="flex-1 rounded-full"
           onClick={onClose}
+          data-testid="booking-info-close"
         >
           Voltar
         </Button>
@@ -164,7 +175,11 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
         {status === "confirmed" && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="flex-1 rounded-full">
+              <Button
+                variant="destructive"
+                className="flex-1 rounded-full"
+                data-testid="booking-cancel-open"
+              >
                 Cancelar Agendamento
               </Button>
             </AlertDialogTrigger>
@@ -182,6 +197,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
                   onClick={handleCancelBooking}
                   disabled={isCancelling}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  data-testid="booking-cancel-confirm"
                 >
                   {isCancelling ? (
                     <Loader2 className="size-4 animate-spin" />
@@ -192,6 +208,24 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+        )}
+
+        {status === "finished" && hasReview && (
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex-1 rounded-full"
+            disabled
+          >
+            Avaliado
+          </Button>
+        )}
+
+        {canCreateReview && (
+          <BookingReviewDialog
+            bookingId={booking.id}
+            onReviewed={() => setHasReview(true)}
+          />
         )}
       </div>
     </SheetContent>
