@@ -35,12 +35,16 @@ model Barbershop {
   bookingIntervalMinutes Int                     @default(30)
   stripeEnabled          Boolean                 @default(true)
   isActive               Boolean                 @default(true)
+  avgRating              Float                   @default(0)
+  ratingsCount           Int                     @default(0)
   ownerId                String?                 @unique
   owner                  User?                   @relation("BarbershopOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   users                  User[]                  @relation("UserBarbershop")
   barbers                Barber[]
   services               BarbershopService[]
   bookings               Booking[]
+  reviews                Review[]
+  waitlistEntries        WaitlistEntry[]
   openingHours           BarbershopOpeningHours[]
   customerBarbershops    CustomerBarbershop[]
   currentUsers           User[]                  @relation("CurrentBarbershopContext")
@@ -65,6 +69,7 @@ model BarbershopService {
   barbershop        Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
   bookings          Booking[]
   bookingServices   BookingService[]
+  waitlistEntries   WaitlistEntry[]
   deletedAt         DateTime?
 }
 
@@ -75,6 +80,7 @@ model Barber {
   barbershopId String
   barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
   bookings     Booking[]
+  waitlistEntries WaitlistEntry[]
   createdAt    DateTime   @default(now()) @db.Timestamptz()
   updatedAt    DateTime   @updatedAt @db.Timestamptz()
 
@@ -118,11 +124,14 @@ model Booking {
   cancelledAt    DateTime?         @db.Timestamptz()
   createdAt      DateTime          @default(now()) @db.Timestamptz()
   updatedAt      DateTime          @updatedAt @db.Timestamptz()
+  review         Review?
+  fulfilledWaitlistEntry WaitlistEntry?
   notificationJobs NotificationJob[]
 
   @@index([barberId])
   @@index([startAt])
   @@index([barbershopId, date, cancelledAt])
+  @@index([barbershopId, barberId, date, cancelledAt])
   @@index([barbershopId, paymentStatus, createdAt])
   @@index([userId, date])
 }
@@ -135,6 +144,49 @@ model BookingService {
 
   @@id([bookingId, serviceId])
   @@index([serviceId])
+}
+
+model WaitlistEntry {
+  id                String              @id @default(uuid())
+  barbershopId      String
+  barbershop        Barbershop          @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId         String
+  service           BarbershopService   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  barberId          String
+  barber            Barber              @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  dateDay           DateTime            @db.Timestamptz()
+  status            WaitlistEntryStatus @default(ACTIVE)
+  fulfilledBookingId String?            @unique
+  fulfilledBooking  Booking?            @relation(fields: [fulfilledBookingId], references: [id], onDelete: SetNull)
+  fulfilledSeenAt   DateTime?           @db.Timestamptz()
+  createdAt         DateTime            @default(now()) @db.Timestamptz()
+  updatedAt         DateTime            @updatedAt @db.Timestamptz()
+
+  @@index([barbershopId])
+  @@index([userId])
+  @@index([serviceId])
+  @@index([barberId])
+  @@index([userId, status, fulfilledSeenAt, createdAt])
+  @@index([barbershopId, dateDay, serviceId, barberId, status, createdAt, id])
+}
+
+model Review {
+  id           String     @id @default(uuid())
+  bookingId    String     @unique
+  barbershopId String
+  userId       String
+  rating       Int
+  comment      String?
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+  updatedAt    DateTime   @updatedAt @db.Timestamptz()
+  booking      Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([barbershopId])
+  @@index([userId])
 }
 
 model BarbershopWhatsAppSettings {
@@ -206,6 +258,13 @@ enum NotificationJobStatus {
   CANCELED
 }
 
+enum WaitlistEntryStatus {
+  ACTIVE
+  FULFILLED
+  CANCELED
+  EXPIRED
+}
+
 enum UserRole {
   CUSTOMER
   OWNER
@@ -235,6 +294,8 @@ model User {
   sessions           Session[]
   accounts           Account[]
   bookings           Booking[]
+  reviews            Review[]
+  waitlistEntries    WaitlistEntry[]
   ownedBarbershop    Barbershop?           @relation("BarbershopOwner")
   customerBarbershops CustomerBarbershop[]
 
