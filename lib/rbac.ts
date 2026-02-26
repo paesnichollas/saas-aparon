@@ -3,6 +3,7 @@ import "server-only";
 import { type UserRole } from "@/generated/prisma/client";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 import { auth } from "./auth";
 import {
@@ -38,7 +39,7 @@ const getUnauthorizedErrorMessage = (roles: UserRole[]) => {
   return `Não autorizado. Papel necessário: ${roles.join(" ou ")}.`;
 };
 
-export const getSessionUser = async (): Promise<SessionUser | null> => {
+const getSessionUserCached = cache(async (): Promise<SessionUser | null> => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -152,6 +153,10 @@ export const getSessionUser = async (): Promise<SessionUser | null> => {
     barbershopId: user.barbershopId,
     profileComplete,
   };
+});
+
+export const getSessionUser = async (): Promise<SessionUser | null> => {
+  return getSessionUserCached();
 };
 
 export const requireAuthenticatedUser = async (): Promise<SessionUser> => {
