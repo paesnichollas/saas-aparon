@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+﻿import { describe, expect, it } from "vitest";
 
 import {
   createShareLinkToken,
@@ -21,93 +20,94 @@ const withShareLinkSecret = async (callback: () => void | Promise<void>) => {
   }
 };
 
-test("createShareLinkToken generates verifiable token", async () => {
-  await withShareLinkSecret(() => {
-    const token = createShareLinkToken({
-      barbershopId: "barbershop-1",
-      publicSlug: "barber-a",
-      ttlInSeconds: 60,
-      now: 1_000,
-    });
+describe("share-link-token", () => {
+  it("createShareLinkToken generates verifiable token", async () => {
+    await withShareLinkSecret(() => {
+      const token = createShareLinkToken({
+        barbershopId: "barbershop-1",
+        publicSlug: "barber-a",
+        ttlInSeconds: 60,
+        now: 1_000,
+      });
 
-    const verification = verifyShareLinkToken({
-      token,
-      expectedBarbershopId: "barbershop-1",
-      expectedPublicSlug: "barber-a",
-      now: 1_500,
-    });
+      const verification = verifyShareLinkToken({
+        token,
+        expectedBarbershopId: "barbershop-1",
+        expectedPublicSlug: "barber-a",
+        now: 1_500,
+      });
 
-    assert.equal(verification.valid, true);
+      expect(verification.valid).toBe(true);
 
-    if (verification.valid) {
-      assert.equal(verification.payload.barbershopId, "barbershop-1");
-      assert.equal(verification.payload.publicSlug, "barber-a");
-    }
-  });
-});
-
-test("verifyShareLinkToken rejects expired token", async () => {
-  await withShareLinkSecret(() => {
-    const token = createShareLinkToken({
-      barbershopId: "barbershop-1",
-      publicSlug: "barber-a",
-      ttlInSeconds: 1,
-      now: 1_000,
-    });
-
-    const verification = verifyShareLinkToken({
-      token,
-      now: 3_000,
-    });
-
-    assert.deepEqual(verification, {
-      valid: false,
-      reason: "expired-token",
+      if (verification.valid) {
+        expect(verification.payload.barbershopId).toBe("barbershop-1");
+        expect(verification.payload.publicSlug).toBe("barber-a");
+      }
     });
   });
-});
 
-test("verifyShareLinkToken rejects tampered token", async () => {
-  await withShareLinkSecret(() => {
-    const token = createShareLinkToken({
-      barbershopId: "barbershop-1",
-      publicSlug: "barber-a",
-      ttlInSeconds: 60,
-      now: 1_000,
+  it("verifyShareLinkToken rejects expired token", async () => {
+    await withShareLinkSecret(() => {
+      const token = createShareLinkToken({
+        barbershopId: "barbershop-1",
+        publicSlug: "barber-a",
+        ttlInSeconds: 1,
+        now: 1_000,
+      });
+
+      const verification = verifyShareLinkToken({
+        token,
+        now: 3_000,
+      });
+
+      expect(verification).toEqual({
+        valid: false,
+        reason: "expired-token",
+      });
     });
-    const tamperedToken = `${token}x`;
+  });
 
-    const verification = verifyShareLinkToken({
-      token: tamperedToken,
-      now: 1_500,
+  it("verifyShareLinkToken rejects tampered token", async () => {
+    await withShareLinkSecret(() => {
+      const token = createShareLinkToken({
+        barbershopId: "barbershop-1",
+        publicSlug: "barber-a",
+        ttlInSeconds: 60,
+        now: 1_000,
+      });
+      const tamperedToken = `${token}x`;
+
+      const verification = verifyShareLinkToken({
+        token: tamperedToken,
+        now: 1_500,
+      });
+
+      expect(verification).toEqual({
+        valid: false,
+        reason: "invalid-signature",
+      });
     });
+  });
 
-    assert.deepEqual(verification, {
-      valid: false,
-      reason: "invalid-signature",
+  it("verifyShareLinkToken rejects slug mismatch", async () => {
+    await withShareLinkSecret(() => {
+      const token = createShareLinkToken({
+        barbershopId: "barbershop-1",
+        publicSlug: "barber-a",
+        ttlInSeconds: 60,
+        now: 1_000,
+      });
+
+      const verification = verifyShareLinkToken({
+        token,
+        expectedPublicSlug: "barber-b",
+        now: 1_500,
+      });
+
+      expect(verification).toEqual({
+        valid: false,
+        reason: "slug-mismatch",
+      });
     });
   });
 });
-
-test("verifyShareLinkToken rejects slug mismatch", async () => {
-  await withShareLinkSecret(() => {
-    const token = createShareLinkToken({
-      barbershopId: "barbershop-1",
-      publicSlug: "barber-a",
-      ttlInSeconds: 60,
-      now: 1_000,
-    });
-
-    const verification = verifyShareLinkToken({
-      token,
-      expectedPublicSlug: "barber-b",
-      now: 1_500,
-    });
-
-    assert.deepEqual(verification, {
-      valid: false,
-      reason: "slug-mismatch",
-    });
-  });
-});
-

@@ -365,7 +365,11 @@ const BarbersManagementCard = ({
                 Cadastre e mantenha os barbeiros disponíveis para agendamentos.
               </CardDescription>
             </div>
-            <Button onClick={handleCreateClick} className="gap-2">
+            <Button
+              onClick={handleCreateClick}
+              className="gap-2"
+              data-testid="owner-new-barber"
+            >
               <Plus className="size-4" />
               Novo barbeiro
             </Button>
@@ -432,6 +436,7 @@ const BarbersManagementCard = ({
                         placeholder="Ex.: Rafael Lima"
                         {...field}
                         disabled={isBarberFormBusy}
+                        data-testid="owner-barber-name-input"
                       />
                     </FormControl>
                     <FormMessage />
@@ -457,7 +462,7 @@ const BarbersManagementCard = ({
                     Cancelar
                   </Button>
                 </DialogClose>
-                <Button type="submit" disabled={isBarberFormBusy}>
+                <Button type="submit" disabled={isBarberFormBusy} data-testid="owner-save-barber">
                   {isSavingBarber ? (
                     <>
                       <Loader2 className="size-4 animate-spin" />

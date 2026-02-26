@@ -190,6 +190,7 @@ const OwnerUserRow = memo(
                   size="sm"
                   disabled={isCurrentRowBusy}
                   onClick={handleSetAdminRole}
+                  data-testid={`admin-set-role-admin-${user.id}`}
                 >
                   Tornar ADMIN
                 </Button>
@@ -202,6 +203,7 @@ const OwnerUserRow = memo(
                   size="sm"
                   disabled={isCurrentRowBusy}
                   onClick={handleSetCustomerRole}
+                  data-testid={`admin-set-role-customer-${user.id}`}
                 >
                   Tornar CUSTOMER
                 </Button>
@@ -216,6 +218,7 @@ const OwnerUserRow = memo(
                     variant={ownedBarbershop.isActive ? "destructive" : "outline"}
                     size="sm"
                     disabled={isCurrentRowBusy}
+                    data-testid={`admin-toggle-barbershop-access-${user.id}`}
                   >
                     {ownedBarbershop.isActive
                       ? "Desabilitar acesso"
@@ -254,12 +257,14 @@ const OwnerUserRow = memo(
                   onChange={handleBarbershopInputChange}
                   disabled={isCurrentRowBusy}
                   className="w-full md:max-w-72"
+                  data-testid={`admin-owner-barbershop-input-${user.id}`}
                 />
                 <Button
                   type="button"
                   size="sm"
                   disabled={isCurrentRowBusy}
                   onClick={handlePromoteToOwnerClick}
+                  data-testid={`admin-promote-owner-${user.id}`}
                 >
                   Tornar OWNER
                 </Button>

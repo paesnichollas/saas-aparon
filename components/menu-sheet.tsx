@@ -78,7 +78,7 @@ const MenuSheet = ({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" data-testid="menu-open">
           <MenuIcon />
         </Button>
       </SheetTrigger>
@@ -125,6 +125,7 @@ const MenuSheet = ({
               <Link
                 href={homeHref}
                 className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                data-testid="menu-link-home"
               >
                 <Home className="size-4" />
                 Início
@@ -134,6 +135,7 @@ const MenuSheet = ({
               <Link
                 href="/bookings"
                 className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                data-testid="menu-link-bookings"
               >
                 <CalendarDays className="size-4" />
                 Agendamentos
@@ -144,6 +146,7 @@ const MenuSheet = ({
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                  data-testid="menu-link-profile"
                 >
                   <UserRound className="size-4" />
                   Perfil
@@ -156,6 +159,7 @@ const MenuSheet = ({
                   <Link
                     href="/owner"
                     className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                    data-testid="menu-link-owner"
                   >
                     <ShieldCheck className="size-4" />
                     Painel Administrativo
@@ -165,6 +169,7 @@ const MenuSheet = ({
                   <Link
                     href="/owner/reports"
                     className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                    data-testid="menu-link-owner-reports"
                   >
                     <BarChart3 className="size-4" />
                     Relatório
@@ -177,6 +182,7 @@ const MenuSheet = ({
                 <Link
                   href="/admin"
                   className="flex items-center gap-3 px-5 py-3 text-sm font-medium"
+                  data-testid="menu-link-admin"
                 >
                   <Shield className="size-4" />
                   Painel admin
@@ -192,6 +198,7 @@ const MenuSheet = ({
                 variant="ghost"
                 className="justify-left w-fit text-left"
                 onClick={handleLogout}
+                data-testid="menu-logout"
               >
                 <LogOut className="size-4" />
                 Sair da conta

@@ -27,8 +27,9 @@ const QuickSearch = () => {
           placeholder="Pesquisar"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
+          data-testid="quick-search-input"
         />
-        <Button type="submit" className="h-10 w-10 rounded-full">
+        <Button type="submit" className="h-10 w-10 rounded-full" data-testid="quick-search-submit">
           <SearchIcon />
         </Button>
       </form>

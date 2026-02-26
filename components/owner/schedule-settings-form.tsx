@@ -254,7 +254,7 @@ const ScheduleSettingsForm = ({
           ))}
         </Accordion>
 
-        <Button onClick={handleSubmit} disabled={isPending}>
+        <Button onClick={handleSubmit} disabled={isPending} data-testid="owner-save-schedule">
           Salvar agenda
         </Button>
       </CardContent>

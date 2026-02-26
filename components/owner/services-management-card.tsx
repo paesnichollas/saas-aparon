@@ -431,7 +431,11 @@ const ServicesManagementCard = ({
                 Crie, edite e remova serviços da sua barbearia.
               </CardDescription>
             </div>
-            <Button onClick={handleCreateClick} className="gap-2">
+            <Button
+              onClick={handleCreateClick}
+              className="gap-2"
+              data-testid="owner-new-service"
+            >
               <Plus className="size-4" />
               Novo serviço
             </Button>
@@ -502,6 +506,7 @@ const ServicesManagementCard = ({
                           placeholder="Ex.: Corte completo"
                           {...field}
                           disabled={isServiceFormBusy}
+                          data-testid="owner-service-name-input"
                         />
                       </FormControl>
                       <FormMessage />
@@ -555,6 +560,7 @@ const ServicesManagementCard = ({
                           value={field.value}
                           onChange={(event) => field.onChange(event.target.value)}
                           disabled={isServiceFormBusy}
+                          data-testid="owner-service-price-input"
                         />
                       </FormControl>
                       <FormMessage />
@@ -599,7 +605,11 @@ const ServicesManagementCard = ({
                     Cancelar
                   </Button>
                 </DialogClose>
-                <Button type="submit" disabled={isServiceFormBusy}>
+                <Button
+                  type="submit"
+                  disabled={isServiceFormBusy}
+                  data-testid="owner-save-service"
+                >
                   {isSavingService ? (
                     <>
                       <Loader2 className="size-4 animate-spin" />

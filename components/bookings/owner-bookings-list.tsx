@@ -90,7 +90,7 @@ const OwnerBookingCard = ({ booking }: OwnerBookingCardProps) => {
   const bookingUserPhone = formatPhoneBRDisplay(booking.user.phone?.trim());
 
   return (
-    <Card>
+    <Card data-testid={`owner-booking-${booking.id}`}>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant={getBookingDisplayStatusVariant(displayStatus)}>

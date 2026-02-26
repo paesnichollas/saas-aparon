@@ -188,6 +188,7 @@ const AuthPage = () => {
                   placeholder="Seu nome"
                   disabled={isSubmitting}
                   required
+                  data-testid="auth-name-input"
                 />
               </div>
             </div>
@@ -214,11 +215,17 @@ const AuthPage = () => {
                   placeholder="(11) 99999-9999"
                   disabled={isSubmitting}
                   required
+                  data-testid="auth-phone-input"
                 />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+              data-testid="auth-submit"
+            >
               {isPhoneLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (

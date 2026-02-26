@@ -35,7 +35,10 @@ const BookingItem = ({ booking }: BookingItemProps) => {
   return (
     <Sheet open={sheetIsOpen} onOpenChange={setSheetIsOpen}>
       <SheetTrigger asChild>
-        <Card className="flex h-full w-full min-w-full cursor-pointer flex-row items-center justify-between p-0">
+        <Card
+          className="flex h-full w-full min-w-full cursor-pointer flex-row items-center justify-between p-0"
+          data-testid={`booking-item-${booking.id}`}
+        >
           <div className="flex flex-1 flex-col gap-4 p-4">
             {status === "cancelled" ? (
               <Badge variant="destructive">CANCELADO</Badge>
