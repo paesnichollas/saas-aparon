@@ -513,12 +513,13 @@ const OwnerReportsCard = ({
 
         if (!response.ok) {
           const errorMessage =
-            getApiErrorMessage(responseData) ?? "Nao foi possivel carregar o relatorio.";
+            getApiErrorMessage(responseData) ??
+            "Não foi possível carregar o relatório.";
           throw new Error(errorMessage);
         }
 
         if (!hasDashboardShape(responseData)) {
-          throw new Error("Relatorio invalido.");
+          throw new Error("Relatório inválido.");
         }
 
         setDashboardData(responseData);
@@ -531,7 +532,7 @@ const OwnerReportsCard = ({
         setDashboardError(
           error instanceof Error
             ? error.message
-            : "Nao foi possivel carregar o relatorio.",
+            : "Não foi possível carregar o relatório.",
         );
       } finally {
         if (!abortController.signal.aborted) {
@@ -637,7 +638,7 @@ const OwnerReportsCard = ({
   return (
     <Card data-testid="owner-reports-card">
       <CardHeader>
-        <CardTitle>Relatorio</CardTitle>
+        <CardTitle>Relatório</CardTitle>
         <CardDescription>
           Indicadores semanais, mensais e anuais para acompanhar desempenho e
           faturamento.
@@ -668,7 +669,7 @@ const OwnerReportsCard = ({
 
           <div className="space-y-2">
             <label htmlFor="owner-report-month" className="text-sm font-medium">
-              Mes
+              Mês
             </label>
             <select
               id="owner-report-month"
@@ -719,7 +720,7 @@ const OwnerReportsCard = ({
 
         {!canLoadReport ? (
           <p className="text-muted-foreground text-sm">
-            Selecione uma barbearia para visualizar o relatorio.
+            Selecione uma barbearia para visualizar o relatório.
           </p>
         ) : null}
 

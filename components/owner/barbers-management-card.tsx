@@ -469,7 +469,7 @@ const BarbersManagementCard = ({
                       Salvando...
                     </>
                   ) : barberInEdition ? (
-                    "Salvar alteracoes"
+                    "Salvar alterações"
                   ) : (
                     "Criar barbeiro"
                   )}

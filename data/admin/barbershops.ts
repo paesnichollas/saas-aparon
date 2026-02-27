@@ -113,7 +113,7 @@ const mapPrismaKnownErrorToPayload = (
     }
 
     return {
-      message: "Já existe um registro com os mesmos dados unicos.",
+      message: "Já existe um registro com os mesmos dados únicos.",
       code: "UNIQUE",
       field,
     };
@@ -377,7 +377,7 @@ const resolveUniqueBarbershopFieldValue = async ({
   }
 
   throw new AdminBarbershopError({
-    message: "Não foi possível gerar um slug unico.",
+    message: "Não foi possível gerar um slug único.",
     code: "UNIQUE",
     field,
   });

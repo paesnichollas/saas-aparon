@@ -33,7 +33,7 @@ const getErrorMessage = (error: unknown) => {
     return error.message.slice(0, 900);
   }
 
-  return "Erro desconhecido ao processar notificacao.";
+  return "Erro desconhecido ao processar notificação.";
 };
 
 const getTwilioFrom = (barbershopFrom: string | null) => {
@@ -49,7 +49,7 @@ const getTwilioFrom = (barbershopFrom: string | null) => {
     return defaultFrom;
   }
 
-  throw new Error("Numero remetente do WhatsApp não configurado.");
+  throw new Error("Número remetente do WhatsApp não configurado.");
 };
 
 const markJobAsCanceled = async (

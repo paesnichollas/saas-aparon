@@ -616,7 +616,7 @@ const ServicesManagementCard = ({
                       Salvando...
                     </>
                   ) : serviceInEdition ? (
-                    "Salvar alteracoes"
+                    "Salvar alterações"
                   ) : (
                     "Criar serviço"
                   )}

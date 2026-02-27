@@ -91,7 +91,7 @@ export async function GET(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       {
         status: 401,
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
   if (!parsedQuery.success) {
     return NextResponse.json(
       {
-        error: "Parametros invalidos.",
+        error: "Parâmetros inválidos.",
       },
       {
         status: 400,
@@ -122,7 +122,7 @@ export async function GET(request: Request) {
   if (year === null) {
     return NextResponse.json(
       {
-        error: "Ano invalido.",
+        error: "Ano inválido.",
       },
       {
         status: 400,
@@ -135,7 +135,7 @@ export async function GET(request: Request) {
   if (parsedQuery.data.month && requestedMonth === null) {
     return NextResponse.json(
       {
-        error: "Mes invalido.",
+        error: "Mês inválido.",
       },
       {
         status: 400,
@@ -156,7 +156,7 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       {
         status: 401,
@@ -203,7 +203,7 @@ export async function GET(request: Request) {
   if (!monthlyRanges || !yearlyRanges) {
     return NextResponse.json(
       {
-        error: "Periodo invalido para gerar o relatorio.",
+        error: "Período inválido para gerar o relatório.",
       },
       {
         status: 400,

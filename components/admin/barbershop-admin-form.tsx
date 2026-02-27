@@ -497,7 +497,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           {isSubmitting
             ? "Salvando..."
             : isEditMode
-              ? "Salvar alteracoes"
+              ? "Salvar alterações"
               : "Criar barbearia"}
         </Button>
 
