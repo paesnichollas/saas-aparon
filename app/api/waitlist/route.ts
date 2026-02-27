@@ -16,7 +16,7 @@ const requestSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-const INVALID_REQUEST_MESSAGE = "Requisicao invalida.";
+const INVALID_REQUEST_MESSAGE = "Requisição inválida.";
 
 const getValidationErrorMessage = (validationErrors: unknown) => {
   if (!validationErrors || typeof validationErrors !== "object") {
@@ -48,7 +48,7 @@ export const POST = async (request: Request) => {
   if (!session?.user) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -107,7 +107,7 @@ export const POST = async (request: Request) => {
   if (!joinWaitlistResult.data) {
     return NextResponse.json(
       {
-        error: "Nao foi possivel entrar na fila de espera.",
+        error: "Não foi possível entrar na fila de espera.",
       },
       { status: 500 },
     );

@@ -29,13 +29,13 @@ const WaitlistFulfillmentBanner = ({ entries }: WaitlistFulfillmentBannerProps) 
       setPendingEntryId(null);
       return toast.error(
         result.validationErrors._errors?.[0] ??
-          "Nao foi possivel atualizar a notificacao.",
+          "Não foi possível atualizar a notificação.",
       );
     }
 
     if (result.serverError) {
       setPendingEntryId(null);
-      return toast.error("Nao foi possivel atualizar a notificacao.");
+      return toast.error("Não foi possível atualizar a notificação.");
     }
 
     setVisibleEntries((previousEntries) => {
@@ -54,13 +54,13 @@ const WaitlistFulfillmentBanner = ({ entries }: WaitlistFulfillmentBannerProps) 
         <Card key={entry.id} className="border-primary/40 bg-accent/40">
           <CardContent className="space-y-3 p-4">
             <div className="space-y-1">
-              <p className="text-sm font-semibold">Voce ganhou uma vaga!</p>
+              <p className="text-sm font-semibold">Você ganhou uma vaga!</p>
               <p className="text-muted-foreground text-sm">
                 {entry.barbershop.name} em{" "}
                 {format(entry.dateDay, "dd/MM/yyyy", { locale: ptBR })}.
               </p>
               <p className="text-muted-foreground text-sm">
-                Servico: {entry.service.name} com {entry.barber.name}.
+                Serviço: {entry.service.name} com {entry.barber.name}.
               </p>
             </div>
 

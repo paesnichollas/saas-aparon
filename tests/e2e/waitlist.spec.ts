@@ -46,7 +46,7 @@ test.describe("waitlist", () => {
     await page.goto("/bookings");
 
     await expect(page.getByTestId("waitlist-empty-state").first()).toHaveText(
-      /Voce nao possui entradas na fila de espera/i,
+      /Você não possui entradas na fila de espera/i,
     );
   });
 
@@ -74,7 +74,9 @@ test.describe("waitlist", () => {
     expect(joinResponse.status()).toBe(400);
 
     const joinResponseJson = (await joinResponse.json()) as { error?: string };
-    expect(joinResponseJson.error ?? "").toMatch(/Ainda ha horarios disponiveis/i);
+    expect(joinResponseJson.error ?? "").toMatch(
+      /Ainda h[aá] hor[aá]rios dispon[ií]veis/i,
+    );
 
     const activeEntryCount = await countActiveWaitlistEntriesForUser({
       userId,

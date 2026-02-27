@@ -26,13 +26,13 @@ export const leaveWaitlist = protectedActionClient
 
     if (!entry) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Entrada de fila nao encontrada."],
+        _errors: ["Entrada da fila não encontrada."],
       });
     }
 
     if (entry.status !== "ACTIVE") {
       returnValidationErrors(inputSchema, {
-        _errors: ["A entrada da fila nao esta ativa."],
+        _errors: ["A entrada da fila não está ativa."],
       });
     }
 
@@ -49,7 +49,7 @@ export const leaveWaitlist = protectedActionClient
 
     if (updateResult.count === 0) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Nao foi possivel sair da fila agora. Tente novamente."],
+        _errors: ["Não foi possível sair da fila agora. Tente novamente."],
       });
     }
 

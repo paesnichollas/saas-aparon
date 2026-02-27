@@ -29,7 +29,7 @@ export const joinWaitlist = criticalActionClient
       const parsedDateDay = parseBookingDateOnly(dateDay);
       if (!parsedDateDay) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Dia invalido para fila de espera."],
+          _errors: ["Dia inválido para fila de espera."],
         });
       }
 
@@ -38,7 +38,7 @@ export const joinWaitlist = criticalActionClient
 
       if (selectedDateKey < todayDateKey) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Nao e possivel entrar na fila para dias passados."],
+          _errors: ["Não é possível entrar na fila para dias passados."],
         });
       }
 
@@ -75,19 +75,19 @@ export const joinWaitlist = criticalActionClient
 
       if (!barbershop || !barbershop.isActive) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbearia indisponivel para fila de espera."],
+          _errors: ["Barbearia indisponível para fila de espera."],
         });
       }
 
       if (!barber) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Barbeiro nao encontrado para esta barbearia."],
+          _errors: ["Barbeiro não encontrado para esta barbearia."],
         });
       }
 
       if (!service) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Servico nao encontrado para esta barbearia."],
+          _errors: ["Serviço não encontrado para esta barbearia."],
         });
       }
 
@@ -107,7 +107,7 @@ export const joinWaitlist = criticalActionClient
 
       if (hasExistingActiveEntry) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Voce ja esta na fila de espera para este dia."],
+          _errors: ["Você já está na fila de espera para este dia."],
         });
       }
 
@@ -120,7 +120,7 @@ export const joinWaitlist = criticalActionClient
 
       if (availableTimeSlots.length > 0) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Ainda ha horarios disponiveis - selecione um horario."],
+          _errors: ["Ainda há horários disponíveis. Selecione um horário."],
         });
       }
 
@@ -184,7 +184,7 @@ export const joinWaitlist = criticalActionClient
           error.code === "P2002"
         ) {
           returnValidationErrors(inputSchema, {
-            _errors: ["Voce ja possui uma entrada ativa para este dia."],
+            _errors: ["Você já possui uma entrada ativa para este dia."],
           });
         }
 

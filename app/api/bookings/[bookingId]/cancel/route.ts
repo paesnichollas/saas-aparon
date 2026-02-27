@@ -46,7 +46,7 @@ export const POST = async (_request: Request, context: CancelBookingRouteContext
   if (!session?.user) {
     return NextResponse.json(
       {
-        error: "Nao autorizado.",
+        error: "Não autorizado.",
       },
       { status: 401 },
     );
@@ -57,7 +57,7 @@ export const POST = async (_request: Request, context: CancelBookingRouteContext
   if (!parsedParams.success) {
     return NextResponse.json(
       {
-        error: "Booking invalido.",
+        error: "Agendamento inválido.",
       },
       { status: 400 },
     );
@@ -96,7 +96,7 @@ export const POST = async (_request: Request, context: CancelBookingRouteContext
   if (!cancelBookingResult.data) {
     return NextResponse.json(
       {
-        error: "Nao foi possivel cancelar o agendamento.",
+        error: "Não foi possível cancelar o agendamento.",
       },
       { status: 500 },
     );

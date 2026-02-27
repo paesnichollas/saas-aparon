@@ -34,7 +34,7 @@ export const getWaitlistStatusForDay = protectedActionClient
 
       if (!parsedDateDay) {
         returnValidationErrors(inputSchema, {
-          _errors: ["Dia invalido para consulta da fila de espera."],
+          _errors: ["Dia inválido para consulta da fila de espera."],
         });
       }
 

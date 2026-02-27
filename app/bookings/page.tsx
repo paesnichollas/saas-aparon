@@ -50,7 +50,7 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
                   <CardTitle>Nenhuma barbearia vinculada</CardTitle>
                   <CardDescription>
                     Vincule sua conta de dono a uma barbearia para visualizar as
-                    agendamentos.
+                    informações de agendamento.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -136,7 +136,7 @@ const BookingsPage = async ({ searchParams }: BookingsPageProps) => {
           <PageSectionTitle>Fila de espera</PageSectionTitle>
           <WaitlistList
             entries={waitlistEntries}
-            emptyMessage="Voce nao possui entradas na fila de espera."
+            emptyMessage="Você não possui entradas na fila de espera."
           />
         </PageSectionContent>
       </PageContainer>

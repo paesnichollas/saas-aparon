@@ -176,15 +176,15 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
     if (result.validationErrors) {
       return toast.error(
         result.validationErrors._errors?.[0] ??
-          "Nao foi possivel entrar na fila de espera.",
+          "Não foi possível entrar na fila de espera.",
       );
     }
 
     if (result.serverError) {
-      return toast.error("Nao foi possivel entrar na fila de espera.");
+      return toast.error("Não foi possível entrar na fila de espera.");
     }
 
-    toast.success("Voce entrou na fila de espera.");
+    toast.success("Você entrou na fila de espera.");
     await invalidateWaitlistStatus();
   };
 
@@ -200,15 +200,15 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
     if (result.validationErrors) {
       return toast.error(
         result.validationErrors._errors?.[0] ??
-          "Nao foi possivel sair da fila de espera.",
+          "Não foi possível sair da fila de espera.",
       );
     }
 
     if (result.serverError) {
-      return toast.error("Nao foi possivel sair da fila de espera.");
+      return toast.error("Não foi possível sair da fila de espera.");
     }
 
-    toast.success("Voce saiu da fila de espera.");
+    toast.success("Você saiu da fila de espera.");
     await invalidateWaitlistStatus();
   };
 
@@ -335,7 +335,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm font-semibold">3. Escolha os servicos</p>
+            <p className="text-sm font-semibold">3. Escolha os serviços</p>
             <div className="space-y-2">
               {services.map((service) => {
                 const isSelected = selectedServiceIds.includes(service.id);
@@ -375,11 +375,11 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
 
           {selectedDate && selectedBarberId && selectedServiceIds.length > 0 ? (
             <div className="space-y-3">
-              <p className="text-sm font-semibold">4. Escolha o horario</p>
+              <p className="text-sm font-semibold">4. Escolha o horário</p>
               {isLoadingTimeSlots ? (
                 <div className="text-muted-foreground flex items-center gap-2 text-sm">
                   <Loader2 className="size-4 animate-spin" />
-                  Carregando horarios...
+                  Carregando horários...
                 </div>
               ) : hasAvailableTimeSlots ? (
                 <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -398,12 +398,12 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
               ) : (
                 <div className="space-y-3">
                   <p className="text-muted-foreground text-sm">
-                    Nenhum horario disponivel para esta combinacao.
+                    Nenhum horário disponível para esta combinação.
                   </p>
 
                   {selectedServiceIds.length !== 1 ? (
                     <p className="text-muted-foreground text-xs">
-                      Para entrar na fila de espera, selecione apenas um servico.
+                      Para entrar na fila de espera, selecione apenas um serviço.
                     </p>
                   ) : isLoadingWaitlistStatus ? (
                     <div className="text-muted-foreground flex items-center gap-2 text-sm">
@@ -413,7 +413,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
                   ) : waitlistStatus?.isInQueue ? (
                     <div className="bg-card border-border space-y-3 rounded-xl border p-3">
                       <p className="text-sm">
-                        Voce esta na fila de espera (posicao {waitlistStatus.position} de{" "}
+                        Você está na fila de espera (posição {waitlistStatus.position} de{" "}
                         {waitlistStatus.queueLength}).
                       </p>
                       <Button
@@ -433,7 +433,7 @@ const BookingSheet = ({ barbershop, barbers, services }: BookingSheetProps) => {
                   ) : (
                     <div className="bg-card border-border space-y-3 rounded-xl border p-3">
                       <p className="text-sm">
-                        Nao ha vagas para este dia. Entre na fila e seja avisado quando
+                        Não há vagas para este dia. Entre na fila e seja avisado quando
                         uma vaga abrir.
                       </p>
                       <Button

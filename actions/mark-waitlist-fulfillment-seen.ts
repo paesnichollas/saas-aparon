@@ -26,13 +26,13 @@ export const markWaitlistFulfillmentSeen = protectedActionClient
 
     if (!entry) {
       returnValidationErrors(inputSchema, {
-        _errors: ["Entrada de fila nao encontrada."],
+        _errors: ["Entrada da fila não encontrada."],
       });
     }
 
     if (entry.status !== "FULFILLED") {
       returnValidationErrors(inputSchema, {
-        _errors: ["A entrada da fila ainda nao foi contemplada."],
+        _errors: ["A entrada da fila ainda não foi contemplada."],
       });
     }
 
