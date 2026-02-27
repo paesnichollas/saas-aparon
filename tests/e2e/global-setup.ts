@@ -1,6 +1,6 @@
-﻿import { execSync } from "node:child_process";
+import { execSync } from "node:child_process";
 
-const REQUIRED_TEST_DATABASE_MARKER = "aparatus_e2e";
+const REQUIRED_TEST_DATABASE_MARKER = "aparon_e2e";
 
 const runCommand = (command: string) => {
   execSync(command, {
@@ -53,3 +53,4 @@ const globalSetup = async () => {
 };
 
 export default globalSetup;
+

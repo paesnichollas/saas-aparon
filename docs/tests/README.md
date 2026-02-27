@@ -12,7 +12,7 @@
 Use local isolated DB and include `schema=e2e` marker:
 
 ```env
-DATABASE_URL="postgresql://postgres:password@localhost:5432/aparatus?schema=e2e"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/aparon?schema=e2e"
 BETTER_AUTH_SECRET="test-better-auth-secret"
 NEXT_PUBLIC_APP_URL="http://127.0.0.1:3000"
 ```

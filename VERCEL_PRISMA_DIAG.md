@@ -1,4 +1,4 @@
-# Vercel + Prisma Diagnostic (np-aparatus)
+# Vercel + Prisma Diagnostic (np-aparon)
 
 ## Update 2026-02-18 - Prompt 51 Applied
 
@@ -251,3 +251,4 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 - Hoje: runtime efetivo orientado a Node, sem Edge explicito.
 - Prisma: centralizado em `lib/prisma.ts`, amplamente usado em data/actions/routes/auth.
 - Principal risco operacional em Vercel: conexoes (pool/concurrency), seguido de cold start em rotas de maior trafego.
+

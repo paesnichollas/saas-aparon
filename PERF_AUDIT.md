@@ -1,7 +1,7 @@
 # PERF AUDIT - Baseline (No Code Refactor)
 
 Generated at: `2026-02-17 21:07:04 -03:00`  
-Repository: `D:/Projetos/np-aparatus`  
+Repository: `D:/Projetos/np-aparon`  
 Scope of this phase: read-only investigation + baseline commands + recommendations.
 
 ## Prompt 51 - Applied optimizations (2026-02-18)
@@ -462,3 +462,4 @@ Install warning observed:
 - No refactor, no behavior changes, no API contract changes.
 - No `pnpm lint` / `pnpm build` execution (repo policy).
 - No bundle analyzer execution (build blocked + analyzer support not configured).
+
