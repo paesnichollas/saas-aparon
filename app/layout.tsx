@@ -18,7 +18,7 @@ const merriweather = Merriweather({
 });
 
 export const metadata: Metadata = {
-  title: "Aparatus",
+  title: "Aparon",
   description: "",
 };
 

@@ -86,7 +86,7 @@ export default async function Home() {
         <QuickSearch />
         <Image
           src={banner}
-          alt="Agende nos melhores com a Aparatus"
+          alt="Agende nos melhores com a Aparon"
           sizes="100vw"
           className="h-auto w-full"
         />
