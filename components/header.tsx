@@ -22,7 +22,7 @@ const Header = async ({ homeHref = "/", chatHref = "/chat" }: HeaderProps) => {
       <Link href={homeHref}>
         <Image
           src="/logo.svg"
-          alt="Aparatus"
+          alt="Aparon"
           width={91}
           height={24}
           className="dark:brightness-0 dark:invert"

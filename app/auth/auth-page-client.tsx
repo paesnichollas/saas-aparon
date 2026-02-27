@@ -78,7 +78,7 @@ const AuthPage = () => {
     );
 
     if (normalizedName.length < 2) {
-      toast.error("Informe um nome válido.");
+      toast.error("Digite um nome válido.");
       return;
     }
 
@@ -86,7 +86,7 @@ const AuthPage = () => {
       normalizedPhoneNumber.length < MIN_PHONE_LENGTH ||
       normalizedPhoneNumber.length > MAX_PHONE_LENGTH
     ) {
-      toast.error("Informe um telefone válido.");
+      toast.error("Telefone inválido. Use DDD + número.");
       return;
     }
 
@@ -126,7 +126,8 @@ const AuthPage = () => {
       }
 
       toast.error(
-        responseErrorMessage ?? "Não foi possível autenticar com nome e telefone.",
+        responseErrorMessage ??
+          "Não foi possível autenticar com nome e telefone.",
       );
       return;
     }
@@ -143,7 +144,7 @@ const AuthPage = () => {
           <CardTitle className="flex justify-center">
             <Image
               src="/logo.svg"
-              alt="Aparatus"
+              alt="Aparon"
               width={192}
               height={40}
               className="h-10 w-auto dark:invert"
