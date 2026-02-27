@@ -155,7 +155,7 @@ const CompleteProfilePageClient = ({
       normalizedContactEmail &&
       !isValidContactEmail(normalizedContactEmail)
     ) {
-      nextFieldErrors.contactEmail = "Informe um email válido.";
+      nextFieldErrors.contactEmail = "Informe um e-mail válido.";
     }
 
     if (provider === "credentials" && !hasPasswordAccount) {
@@ -211,7 +211,7 @@ const CompleteProfilePageClient = ({
               contactEmail:
                 responseJson?.fields?.contactEmail ??
                 responseJson?.error ??
-                "Este email já está em uso.",
+                "Este e-mail já está em uso.",
             }));
           }
         }
@@ -301,7 +301,7 @@ const CompleteProfilePageClient = ({
             {shouldShowContactEmail ? (
               <div className="space-y-2">
                 <Label htmlFor="complete-profile-contact-email">
-                  Email (opcional)
+                  E-mail (opcional)
                 </Label>
                 <div className="relative">
                   <Mail className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
@@ -334,7 +334,7 @@ const CompleteProfilePageClient = ({
                     }}
                     disabled={isSubmitting}
                   >
-                    Pular email por enquanto
+                    Pular e-mail por enquanto
                   </Button>
                 ) : null}
                 {fieldErrors.contactEmail ? (

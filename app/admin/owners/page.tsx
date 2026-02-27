@@ -106,7 +106,7 @@ const AdminOwnersPage = async ({ searchParams }: AdminOwnersPageProps) => {
             <Input
               name="q"
               defaultValue={search}
-              placeholder="Buscar por nome ou email"
+              placeholder="Buscar por nome ou e-mail"
               className="w-full md:max-w-sm"
             />
 

@@ -15,7 +15,7 @@ const MAX_PHONE_LENGTH = 11;
 const PHONE_ALREADY_REGISTERED_ERROR_MESSAGE =
   "Já há um usuário cadastrado com esse telefone.";
 const CONTACT_EMAIL_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Já há um usuário cadastrado com esse email.";
+  "Já há um usuário cadastrado com esse e-mail.";
 
 const inputSchema = z.object({
   name: z.string().trim().min(1).max(120),
@@ -131,7 +131,7 @@ export const updateMyProfile = protectedActionClient
     }
 
     if (canEditContactEmail && nextContactEmail && !isValidContactEmail(nextContactEmail)) {
-      validationErrors.contactEmail = { _errors: ["Informe um email válido."] };
+      validationErrors.contactEmail = { _errors: ["Informe um e-mail válido."] };
     }
 
     if (Object.keys(validationErrors).length > 0) {

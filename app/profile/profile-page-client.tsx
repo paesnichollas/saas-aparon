@@ -86,7 +86,7 @@ const createProfileFormSchema = ({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["contactEmail"],
-            message: "Informe um email válido.",
+            message: "Informe um e-mail válido.",
           });
         }
       }
@@ -279,7 +279,7 @@ const ProfilePageClient = ({
 
           {shouldShowReadOnlyEmail ? (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>E-mail</FormLabel>
               <div className="relative">
                 <Mail className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                 <Input
@@ -291,7 +291,7 @@ const ProfilePageClient = ({
                 />
               </div>
               <FormDescription>
-                O email principal da conta não pode ser alterado nesta etapa.
+                O e-mail principal da conta não pode ser alterado nesta etapa.
               </FormDescription>
             </FormItem>
           ) : null}
@@ -302,7 +302,7 @@ const ProfilePageClient = ({
               name="contactEmail"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email (opcional)</FormLabel>
+                  <FormLabel>E-mail (opcional)</FormLabel>
                   <div className="relative">
                     <Mail className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
                     <FormControl>
@@ -318,7 +318,7 @@ const ProfilePageClient = ({
                     </FormControl>
                   </div>
                   <FormDescription>
-                    Esse email é usado para contato e recuperação da conta.
+                    Esse e-mail é usado para contato e recuperação da conta.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -332,7 +332,7 @@ const ProfilePageClient = ({
             ) : isCompleteMode ? (
               "Concluir cadastro"
             ) : (
-              "Salvar alteracoes"
+              "Salvar alterações"
             )}
           </Button>
         </form>

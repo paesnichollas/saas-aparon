@@ -29,7 +29,7 @@ interface CompleteProfileFieldErrors {
 const MIN_NAME_LENGTH = 2;
 const INVALID_REQUEST_MESSAGE = "Dados de cadastro inválidos.";
 const CONTACT_EMAIL_ALREADY_REGISTERED_ERROR_MESSAGE =
-  "Já há um usuário cadastrado com esse email.";
+  "Já há um usuário cadastrado com esse e-mail.";
 const PHONE_ALREADY_REGISTERED_ERROR_MESSAGE =
   "Já há um usuário cadastrado com esse telefone.";
 const USER_NOT_FOUND_ERROR_MESSAGE = "Usuário não encontrado.";
@@ -174,7 +174,7 @@ export async function PATCH(request: Request) {
   }
 
   if (nextContactEmail && !isValidContactEmail(nextContactEmail)) {
-    fieldErrors.contactEmail = "Informe um email válido.";
+    fieldErrors.contactEmail = "Informe um e-mail válido.";
   }
 
   if (provider === "phone" || provider === "google") {
