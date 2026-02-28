@@ -34,6 +34,7 @@ import {
   PageSectionTitle,
 } from "@/components/ui/page";
 import { Separator } from "@/components/ui/separator";
+import ExclusiveServiceRowCard from "@/components/exclusive-service-row-card";
 
 type BarbershopWithRelations = Barbershop & {
   barbers: Barber[];
@@ -48,11 +49,11 @@ interface ExclusiveBarbershopLandingProps {
 const dayLabels = [
   "Domingo",
   "Segunda",
-  "Terca",
+  "Terça",
   "Quarta",
   "Quinta",
   "Sexta",
-  "Sabado",
+  "Sábado",
 ];
 
 const DEFAULT_HOME_PREMIUM_TITLE = "Experiência premium na home";
@@ -246,7 +247,7 @@ const ExclusiveBarbershopLanding = ({
           <CardHeader className="space-y-1">
             <CardTitle className="text-base">Horário semanal</CardTitle>
             <CardDescription>
-              Horários visiveis para facilitar o agendamento.
+              Horários visíveis para facilitar o agendamento.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -276,37 +277,19 @@ const ExclusiveBarbershopLanding = ({
           <PageSectionTitle>Serviços em destaque</PageSectionTitle>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {featuredServices.map((service) => {
-              const serviceImageUrl = service.imageUrl ?? barbershopImageUrl;
-
               return (
                 <Card
                   key={service.id}
-                  className="animate-in fade-in slide-in-from-bottom-2 border-accent bg-card py-4 duration-500"
+                  className="animate-in fade-in slide-in-from-bottom-2 border-accent bg-card duration-500"
                 >
-                  <CardContent className="space-y-3 px-4">
-                    <div className="relative h-[10rem] w-full overflow-hidden rounded-2xl border">
-                      <Image
-                        src={serviceImageUrl}
-                        alt={service.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 64rem) 100vw, 33vw"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold">{service.name}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {service.description?.trim() || "Sem descrição"}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-bold">
-                        {formatCurrency(service.priceInCents)}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        {service.durationInMinutes} min
-                      </p>
-                    </div>
+                  <CardContent className="p-3 sm:p-4">
+                    <ExclusiveServiceRowCard
+                      name={service.name}
+                      description={service.description}
+                      priceInCents={service.priceInCents}
+                      durationInMinutes={service.durationInMinutes}
+                      imageUrl={service.imageUrl}
+                    />
                   </CardContent>
                 </Card>
               );
@@ -321,38 +304,26 @@ const ExclusiveBarbershopLanding = ({
           {barbershop.services.length > 0 ? (
             <Accordion type="single" collapsible className="rounded-2xl border px-3">
               {barbershop.services.map((service) => {
-                const serviceImageUrl = service.imageUrl ?? barbershopImageUrl;
                 const serviceDescription =
                   service.description?.trim() || "Sem descrição.";
                 const firstPhone = contactPhones[0]?.dialPhone;
 
                 return (
                   <AccordionItem key={service.id} value={`service-${service.id}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <p className="truncate text-sm font-medium">{service.name}</p>
-                        <div className="ml-auto flex shrink-0 items-center gap-2">
-                          <p className="text-sm font-semibold">
-                            {formatCurrency(service.priceInCents)}
-                          </p>
-                          <Badge variant="secondary" className="text-xs">
-                            {service.durationInMinutes} min
-                          </Badge>
-                        </div>
+                    <AccordionTrigger className="py-2 hover:no-underline">
+                      <div className="min-w-0 flex-1">
+                        <ExclusiveServiceRowCard
+                          name={service.name}
+                          description={service.description}
+                          priceInCents={service.priceInCents}
+                          durationInMinutes={service.durationInMinutes}
+                          imageUrl={service.imageUrl}
+                        />
                       </div>
                     </AccordionTrigger>
 
                     <AccordionContent>
-                      <div className="space-y-3">
-                        <div className="relative h-[10rem] w-full overflow-hidden rounded-2xl border sm:h-[12rem]">
-                          <Image
-                            src={serviceImageUrl}
-                            alt={service.name}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 48rem) 100vw, 50vw"
-                          />
-                        </div>
+                      <div className="space-y-3 pl-0 sm:pl-28">
                         <p className="text-muted-foreground text-sm">
                           {serviceDescription}
                         </p>
