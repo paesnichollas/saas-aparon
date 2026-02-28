@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getDefaultServiceImageUrl } from "@/lib/default-images";
 import { formatCurrency } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Pencil, Plus, Scissors, Timer, Trash2 } from "lucide-react";
@@ -75,8 +76,8 @@ const serviceFormSchema = z.object({
   durationInMinutes: z
     .number()
     .int("Informe um valor inteiro.")
-    .min(5, "A duração mínima e de 5 minutos.")
-    .max(240, "A duração máxima e de 240 minutos."),
+    .min(5, "A duração mínima é de 5 minutos.")
+    .max(240, "A duração máxima é de 240 minutos."),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -261,6 +262,10 @@ const ServicesManagementCard = ({
 
   const isSavingService = isCreatingService || isUpdatingService;
   const isServiceFormBusy = isSavingService || isUploadingServiceImage;
+  const watchedServiceName = serviceForm.watch("name");
+  const servicePreviewFallbackUrl = useMemo(() => {
+    return getDefaultServiceImageUrl(watchedServiceName ?? "");
+  }, [watchedServiceName]);
 
   const handleCreateClick = useCallback(() => {
     setServiceInEdition(null);
@@ -537,10 +542,11 @@ const ServicesManagementCard = ({
                   <ImageUploader
                     value={serviceImageUrl}
                     onChange={setServiceImageUrl}
+                    previewFallbackUrl={servicePreviewFallbackUrl}
                     label="Imagem (opcional)"
                     barbershopId={barbershopId}
                     disabled={isSavingService}
-                    helperText="A imagem é enviada via UploadThing é salva como URL."
+                    helperText="A imagem é enviada via UploadThing e salva como URL. Sem upload, uma imagem padrão será aplicada."
                     emptyText="Sem imagem para preview."
                     onUploadingChange={setIsUploadingServiceImage}
                   />

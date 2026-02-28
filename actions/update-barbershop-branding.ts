@@ -3,6 +3,7 @@
 import { ensureBarbershopPublicSlug } from "@/data/barbershops";
 import { protectedActionClient } from "@/lib/action-client";
 import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { DEFAULT_BANNER_IMAGE_URL } from "@/lib/default-images";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
@@ -16,9 +17,14 @@ const inputSchema = z.object({
   description: z.string().trim().min(10).max(1000),
   address: z.string().trim().min(5).max(160),
   phones: z.array(z.string().trim().min(8).max(30)).min(1).max(6),
-  imageUrl: z.string().trim().max(500),
+  imageUrl: z.string().trim().max(500).nullable().optional(),
   slug: z.string().trim().min(3).max(60).regex(slugRegex),
 });
+
+const normalizeOptionalValue = (value: string | null | undefined) => {
+  const normalizedValue = value?.trim() ?? "";
+  return normalizedValue.length > 0 ? normalizedValue : null;
+};
 
 const hasValidImageUrl = (value: string) => {
   if (value.startsWith("/")) {
@@ -83,7 +89,8 @@ export const updateBarbershopBranding = protectedActionClient
         });
       }
 
-      const normalizedImageUrl = imageUrl.trim();
+      const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+      const resolvedImageUrl = normalizedImageUrl ?? DEFAULT_BANNER_IMAGE_URL;
       const normalizedPhones = phones.map((phone) => phone.trim()).filter(Boolean);
 
       if (normalizedPhones.length === 0) {
@@ -92,7 +99,7 @@ export const updateBarbershopBranding = protectedActionClient
         });
       }
 
-      if (normalizedImageUrl.length === 0 || !hasValidImageUrl(normalizedImageUrl)) {
+      if (!hasValidImageUrl(resolvedImageUrl)) {
         returnValidationErrors(inputSchema, {
           _errors: ["A imagem de fundo enviada é inválida."],
         });
@@ -107,7 +114,7 @@ export const updateBarbershopBranding = protectedActionClient
           description,
           address,
           phones: normalizedPhones,
-          imageUrl: normalizedImageUrl,
+          imageUrl: resolvedImageUrl,
           slug,
         },
         select: {

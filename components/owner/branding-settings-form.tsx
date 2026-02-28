@@ -12,6 +12,7 @@ import {
 import ImageUploader from "@/components/ui/image-uploader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DEFAULT_BANNER_IMAGE_URL } from "@/lib/default-images";
 import {
   BR_PHONE_MAX_LENGTH,
   BR_PHONE_MIN_LENGTH,
@@ -122,18 +123,13 @@ const BrandingSettingsForm = ({
       .map((phoneDigits) => formatPhoneBRDisplay(phoneDigits))
       .filter((phone) => phone.length > 0);
 
-    if (!backgroundImageUrl?.trim()) {
-      toast.error("Envie uma imagem de banner para a barbearia.");
-      return;
-    }
-
     const result = await executeUpdateBranding({
       barbershopId,
       name: nameInput.trim(),
       description: descriptionInput.trim(),
       address: addressInput.trim(),
       phones: parsedPhones,
-      imageUrl: backgroundImageUrl.trim(),
+      imageUrl: backgroundImageUrl?.trim() ?? null,
       slug: slugPreview,
     });
 
@@ -228,11 +224,12 @@ const BrandingSettingsForm = ({
           <ImageUploader
             value={backgroundImageUrl}
             onChange={setBackgroundImageUrl}
+            previewFallbackUrl={DEFAULT_BANNER_IMAGE_URL}
             label="Banner da barbearia"
             previewAlt={nameInput.trim() || "Preview do banner"}
             barbershopId={barbershopId}
             disabled={isPending}
-            helperText="O banner é enviado via UploadThing é salvo como URL."
+            helperText="O banner é enviado via UploadThing e salvo como URL. Sem upload, uma imagem padrão será aplicada."
             emptyText="Sem banner para preview."
             onUploadingChange={setIsUploadingBackgroundImage}
           />

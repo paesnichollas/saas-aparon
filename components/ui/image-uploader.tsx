@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 interface ImageUploaderProps {
   value: string | null;
   onChange: (value: string | null) => void;
+  previewFallbackUrl?: string | null;
   label: string;
   disabled?: boolean;
   helperText?: string;
@@ -32,6 +33,11 @@ interface ImageUploaderProps {
 
 const getStringValue = (value: unknown) => {
   return typeof value === "string" && value.length > 0 ? value : null;
+};
+
+const getPreviewUrl = (value: string | null | undefined) => {
+  const normalizedValue = value?.trim() ?? "";
+  return normalizedValue.length > 0 ? normalizedValue : null;
 };
 
 const getUploadedUrl = (uploadedFile: unknown) => {
@@ -60,6 +66,7 @@ const getUploadedUrl = (uploadedFile: unknown) => {
 const ImageUploader = ({
   value,
   onChange,
+  previewFallbackUrl = null,
   label,
   disabled = false,
   helperText = "Selecione uma imagem do dispositivo para enviar.",
@@ -71,6 +78,7 @@ const ImageUploader = ({
   const [isUploading, setIsUploading] = useState(false);
   const hasAppliedUploadUrlRef = useRef(false);
   const hasUploadErrorRef = useRef(false);
+  const previewUrl = getPreviewUrl(value) ?? getPreviewUrl(previewFallbackUrl);
 
   const applyUploadedUrl = useCallback(
     (uploadedFiles: unknown, source: "callback" | "await") => {
@@ -185,9 +193,9 @@ const ImageUploader = ({
       ) : null}
 
       <div className="bg-muted relative aspect-video w-full overflow-hidden rounded-lg border">
-        {value ? (
+        {previewUrl ? (
           <Image
-            src={value}
+            src={previewUrl}
             alt={previewAlt ?? label}
             fill
             className="object-cover"

@@ -1,4 +1,4 @@
-const DEFAULT_BARBERSHOP_IMAGE_URL = "/banner.png";
+import { DEFAULT_BANNER_IMAGE_URL } from "@/lib/default-images";
 
 export const resolveBarbershopImageUrl = (
   imageUrl: string | null | undefined,
@@ -9,5 +9,5 @@ export const resolveBarbershopImageUrl = (
     return normalizedImageUrl;
   }
 
-  return DEFAULT_BARBERSHOP_IMAGE_URL;
+  return DEFAULT_BANNER_IMAGE_URL;
 };

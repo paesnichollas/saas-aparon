@@ -4,6 +4,7 @@ import { getOwnerBarbershopIdByUserId } from "@/data/barbershops";
 import { getServiceById, updateServiceById } from "@/data/services";
 import { protectedActionClient } from "@/lib/action-client";
 import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { resolveServiceImageUrl } from "@/lib/default-images";
 import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
@@ -71,8 +72,13 @@ export const updateService = protectedActionClient
         );
       }
 
+      const normalizedName = name.trim();
       const normalizedDescription = normalizeOptionalValue(description);
       const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+      const resolvedImageUrl = resolveServiceImageUrl(
+        normalizedImageUrl,
+        normalizedName,
+      );
 
       if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
         returnValidationErrors(inputSchema, {
@@ -81,9 +87,9 @@ export const updateService = protectedActionClient
       }
 
       const updatedService = await updateServiceById(service.id, {
-        name: name.trim(),
+        name: normalizedName,
         description: normalizedDescription,
-        imageUrl: normalizedImageUrl,
+        imageUrl: resolvedImageUrl,
         priceInCents,
         durationInMinutes,
       });

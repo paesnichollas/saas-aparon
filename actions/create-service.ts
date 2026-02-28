@@ -2,6 +2,7 @@
 
 import { protectedActionClient } from "@/lib/action-client";
 import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { resolveServiceImageUrl } from "@/lib/default-images";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
@@ -66,8 +67,13 @@ export const createService = protectedActionClient
         });
       }
 
+      const normalizedName = name.trim();
       const normalizedDescription = normalizeOptionalValue(description);
       const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+      const resolvedImageUrl = resolveServiceImageUrl(
+        normalizedImageUrl,
+        normalizedName,
+      );
 
       if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
         returnValidationErrors(inputSchema, {
@@ -78,9 +84,9 @@ export const createService = protectedActionClient
       const createdService = await prisma.barbershopService.create({
         data: {
           barbershopId: barbershop.id,
-          name: name.trim(),
+          name: normalizedName,
           description: normalizedDescription,
-          imageUrl: normalizedImageUrl,
+          imageUrl: resolvedImageUrl,
           priceInCents,
           durationInMinutes,
         },
