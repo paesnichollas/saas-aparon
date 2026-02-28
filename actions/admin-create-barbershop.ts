@@ -14,20 +14,20 @@ import { z } from "zod";
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 const inputSchema = z.object({
-  name: z.string().trim().min(2).max(80),
-  address: z.string().trim().min(5).max(200),
-  description: z.string().trim().min(10).max(1000),
+  name: z.string().trim().min(1).max(80),
+  address: z.string().trim().max(200).optional(),
+  description: z.string().trim().max(1000).optional(),
   imageUrl: z.union([z.string().trim().max(500), z.null()]).optional(),
   logoUrl: z.union([z.string().trim().max(500), z.null()]).optional(),
-  phones: z.array(z.string().trim().min(8).max(30)).min(1).max(6),
+  phones: z.array(z.string().trim().min(8).max(30)).max(6).optional(),
   slug: z.string().trim().min(3).max(80).regex(slugRegex).optional(),
-  exclusiveBarber: z.boolean(),
-  stripeEnabled: z.boolean(),
+  exclusiveBarber: z.boolean().optional(),
+  stripeEnabled: z.boolean().optional(),
   ownerId: z.union([z.string().trim().min(1, "OwnerID inválido."), z.null()]).optional(),
-  plan: z.enum(["BASIC", "PRO"]),
-  whatsappProvider: z.enum(["NONE", "TWILIO"]),
+  plan: z.enum(["BASIC", "PRO"]).optional(),
+  whatsappProvider: z.enum(["NONE", "TWILIO"]).optional(),
   whatsappFrom: z.union([z.string().trim().max(60), z.null()]).optional(),
-  whatsappEnabled: z.boolean(),
+  whatsappEnabled: z.boolean().optional(),
 });
 
 type AdminCreateBarbershopActionSuccess = {

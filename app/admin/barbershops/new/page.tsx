@@ -26,7 +26,7 @@ const AdminBarbershopCreatePage = () => {
         <CardHeader>
           <CardTitle>Criar barbearia</CardTitle>
           <CardDescription>
-            Preencha os dados principais para cadastrar uma nova barbearia.
+            Informe o nome. Os demais campos são opcionais e recebem valores padrão.
           </CardDescription>
         </CardHeader>
         <CardContent>

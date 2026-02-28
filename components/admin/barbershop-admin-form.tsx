@@ -163,20 +163,25 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const normalizedName = name.trim();
+    const normalizedAddress = address.trim();
+    const normalizedDescription = description.trim();
+    const normalizedOwnerId = ownerIdInput.trim().length > 0 ? ownerIdInput.trim() : null;
+    const normalizedWhatsappFrom = whatsappFrom.trim() || null;
     const parsedPhonesDigits = parsePhoneListToDigits(phonesText);
 
-    if (!normalizedSlug) {
+    if (!normalizedName) {
+      toast.error("Informe o nome da barbearia.");
+      return;
+    }
+
+    if (isEditMode && !normalizedSlug) {
       toast.error("Informe um slug válido.");
       return;
     }
 
-    if (parsedPhonesDigits.length === 0) {
-      toast.error("Informe pelo menos um telefone.");
-      return;
-    }
-
     if (parsedPhonesDigits.some((phoneDigits) => !isValidPhoneDigits(phoneDigits))) {
-      toast.error("Informe telefones válidos com DDD (10 ou 11 digitos).");
+      toast.error("Informe telefones válidos com DDD (10 ou 11 dígitos).");
       return;
     }
 
@@ -184,25 +189,26 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
       .map((phoneDigits) => formatPhoneBRDisplay(phoneDigits))
       .filter((phone) => phone.length > 0);
 
-    const payload = {
-      name: name.trim(),
-      address: address.trim(),
-      description: description.trim(),
-      imageUrl: normalizeUploadUrlValue(imageUrl),
-      logoUrl: normalizeUploadUrlValue(logoUrl),
-      phones: parsedPhones,
-      slug: normalizedSlug,
-      exclusiveBarber,
-      stripeEnabled,
-      ownerId: ownerIdInput.trim().length > 0 ? ownerIdInput.trim() : null,
-      plan,
-      whatsappProvider: plan === "PRO" ? whatsappProvider : "NONE",
-      whatsappFrom: plan === "PRO" ? whatsappFrom.trim() || null : null,
-      whatsappEnabled: plan === "PRO" ? whatsappEnabled : false,
-    };
-
     if (!isEditMode) {
-      const result = await executeCreate(payload);
+      const result = await executeCreate({
+        name: normalizedName,
+        address: normalizedAddress || undefined,
+        description: normalizedDescription || undefined,
+        imageUrl: normalizeUploadUrlValue(imageUrl),
+        logoUrl: normalizeUploadUrlValue(logoUrl),
+        phones: parsedPhones.length > 0 ? parsedPhones : undefined,
+        slug:
+          slugInput.trim().length > 0
+            ? normalizePublicSlug(slugInput.trim()) || undefined
+            : undefined,
+        exclusiveBarber,
+        stripeEnabled,
+        ownerId: normalizedOwnerId,
+        plan,
+        whatsappProvider: plan === "PRO" ? whatsappProvider : "NONE",
+        whatsappFrom: plan === "PRO" ? normalizedWhatsappFrom : null,
+        whatsappEnabled: plan === "PRO" ? whatsappEnabled : false,
+      });
       const validationError = getValidationError(result.validationErrors);
 
       if (validationError) {
@@ -231,8 +237,26 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
       return;
     }
 
+    if (parsedPhones.length === 0) {
+      toast.error("Informe pelo menos um telefone.");
+      return;
+    }
+
     const result = await executeUpdate({
-      ...payload,
+      name: normalizedName,
+      address: normalizedAddress,
+      description: normalizedDescription,
+      imageUrl: normalizeUploadUrlValue(imageUrl),
+      logoUrl: normalizeUploadUrlValue(logoUrl),
+      phones: parsedPhones,
+      slug: normalizedSlug,
+      exclusiveBarber,
+      stripeEnabled,
+      ownerId: normalizedOwnerId,
+      plan,
+      whatsappProvider: plan === "PRO" ? whatsappProvider : "NONE",
+      whatsappFrom: plan === "PRO" ? normalizedWhatsappFrom : null,
+      whatsappEnabled: plan === "PRO" ? whatsappEnabled : false,
       barbershopId: barbershop.id,
     });
     const validationError = getValidationError(result.validationErrors);
@@ -297,6 +321,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           value={name}
           onChange={(event) => setName(event.target.value)}
           disabled={isSubmitting}
+          required
           placeholder="Nome da barbearia"
         />
       </div>
@@ -310,6 +335,11 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           disabled={isSubmitting}
           placeholder="Rua, numero, bairro, cidade"
         />
+        {!isEditMode ? (
+          <p className="text-muted-foreground text-xs">
+            Opcional. Se vazio, será usado: Endereço da barbearia.
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -322,6 +352,11 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           placeholder="Descreva os diferenciais da barbearia"
           rows={4}
         />
+        {!isEditMode ? (
+          <p className="text-muted-foreground text-xs">
+            Opcional. Se vazio, uma descrição padrão será aplicada.
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -334,7 +369,9 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           placeholder="(11) 99999-9999, (11) 98888-7777"
         />
         <p className="text-muted-foreground text-xs">
-          Separe por virgula, ponto e virgula ou quebra de linha.
+          {isEditMode
+            ? "Separe por vírgula, ponto e vírgula ou quebra de linha."
+            : "Opcional. Separe por vírgula, ponto e vírgula ou quebra de linha."}
         </p>
       </div>
 
@@ -371,7 +408,11 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           disabled={isSubmitting}
           placeholder="minha-barbearia"
         />
-        <p className="text-muted-foreground text-xs">Slug final: {normalizedSlug || "-"}</p>
+        <p className="text-muted-foreground text-xs">
+          {isEditMode
+            ? `Slug final: ${normalizedSlug || "-"}`
+            : `Opcional. Se vazio, geramos com base no nome. Slug final: ${normalizedSlug || "-"}`}
+        </p>
       </div>
 
       {isEditMode && barbershop ? (
@@ -399,7 +440,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
           <p className="text-muted-foreground text-xs">Owner atual: {currentOwnerLabel}</p>
         ) : (
           <p className="text-muted-foreground text-xs">
-            Se informado, o usuário sera promovido para OWNER desta barbearia.
+            Se informado, o usuário será promovido para OWNER desta barbearia.
           </p>
         )}
       </div>
@@ -493,7 +534,7 @@ const BarbershopAdminForm = ({ mode, barbershop }: BarbershopAdminFormProps) => 
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit" disabled={isSubmitting || !normalizedSlug}>
+        <Button type="submit" disabled={isSubmitting}>
           {isSubmitting
             ? "Salvando..."
             : isEditMode

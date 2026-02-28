@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Prisma } from "@/generated/prisma/client";
+import { ADMIN_CREATE_BARBERSHOP_DEFAULTS } from "@/data/admin/barbershop-defaults";
 import { demoteOwnerToCustomerByAdmin, promoteUserToOwnerByAdmin } from "@/data/owner-assignment";
 import { cancelFuturePendingBarbershopNotificationJobs } from "@/lib/notifications/notification-jobs";
 import { buildPublicSlugCandidate, getPublicSlugBase } from "@/lib/public-slug";
@@ -276,14 +277,24 @@ const normalizeSearch = (search: string | undefined) => {
   return normalizedSearch?.length ? normalizedSearch : null;
 };
 
-const normalizePhones = (phones: string[] | undefined) => {
+const normalizePhones = (
+  phones: string[] | undefined,
+  options?: {
+    allowEmpty?: boolean;
+    fallbackWhenMissing?: string[];
+  },
+) => {
   if (!phones) {
+    if (options?.fallbackWhenMissing) {
+      return [...options.fallbackWhenMissing];
+    }
+
     return undefined;
   }
 
   const normalizedPhones = phones.map((phone) => phone.trim()).filter(Boolean);
 
-  if (normalizedPhones.length === 0) {
+  if (normalizedPhones.length === 0 && !options?.allowEmpty) {
     throw new AdminBarbershopError({
       message: "Informe pelo menos um telefone válido.",
       code: "VALIDATION",
@@ -302,6 +313,17 @@ const normalizeOptionalValue = (value: string | null | undefined) => {
 const normalizeOptionalOwnerId = (ownerId: string | null | undefined) => {
   const normalizedOwnerId = ownerId?.trim() ?? "";
   return normalizedOwnerId.length > 0 ? normalizedOwnerId : null;
+};
+
+const resolveTextWithFallback = ({
+  value,
+  fallback,
+}: {
+  value: string | null | undefined;
+  fallback: string;
+}) => {
+  const normalizedValue = value?.trim() ?? "";
+  return normalizedValue.length > 0 ? normalizedValue : fallback;
 };
 
 const normalizeRequiredText = ({
@@ -384,10 +406,10 @@ const resolveUniqueBarbershopFieldValue = async ({
 };
 
 type PlanConfigInput = {
-  plan: "BASIC" | "PRO";
-  whatsappProvider: "NONE" | "TWILIO";
-  whatsappFrom: string | null | undefined;
-  whatsappEnabled: boolean;
+  plan?: "BASIC" | "PRO";
+  whatsappProvider?: "NONE" | "TWILIO";
+  whatsappFrom?: string | null;
+  whatsappEnabled?: boolean;
 };
 
 const resolvePlanConfig = ({
@@ -396,7 +418,11 @@ const resolvePlanConfig = ({
   whatsappFrom,
   whatsappEnabled,
 }: PlanConfigInput) => {
-  const normalizedPlan = plan;
+  const normalizedPlan = plan ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.plan;
+  const normalizedWhatsappProvider =
+    whatsappProvider ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.whatsappProvider;
+  const normalizedWhatsappEnabled =
+    whatsappEnabled ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.whatsappEnabled;
   const normalizedWhatsappFrom = normalizeOptionalValue(whatsappFrom);
 
   if (normalizedPlan === "BASIC") {
@@ -408,7 +434,7 @@ const resolvePlanConfig = ({
     };
   }
 
-  if (whatsappEnabled && whatsappProvider !== "TWILIO") {
+  if (normalizedWhatsappEnabled && normalizedWhatsappProvider !== "TWILIO") {
     throw new AdminBarbershopError({
       message: "Para habilitar WhatsApp no plano PRO, selecione o provider TWILIO.",
       code: "VALIDATION",
@@ -418,9 +444,9 @@ const resolvePlanConfig = ({
 
   return {
     plan: "PRO" as const,
-    whatsappProvider,
+    whatsappProvider: normalizedWhatsappProvider,
     whatsappFrom: normalizedWhatsappFrom,
-    whatsappEnabled,
+    whatsappEnabled: normalizedWhatsappEnabled,
   };
 };
 
@@ -636,19 +662,19 @@ export const adminGetBarbershop = async (barbershopId: string) => {
 
 interface AdminCreateBarbershopInput {
   name: string;
-  address: string;
-  description: string;
+  address?: string;
+  description?: string;
   imageUrl?: string | null;
   logoUrl?: string | null;
-  phones: string[];
+  phones?: string[];
   slug?: string;
-  exclusiveBarber: boolean;
-  stripeEnabled: boolean;
+  exclusiveBarber?: boolean;
+  stripeEnabled?: boolean;
   ownerId?: string | null;
-  plan: "BASIC" | "PRO";
-  whatsappProvider: "NONE" | "TWILIO";
+  plan?: "BASIC" | "PRO";
+  whatsappProvider?: "NONE" | "TWILIO";
   whatsappFrom?: string | null;
-  whatsappEnabled: boolean;
+  whatsappEnabled?: boolean;
 }
 
 export const adminCreateBarbershop = async ({
@@ -672,32 +698,44 @@ export const adminCreateBarbershop = async ({
   const normalizedName = normalizeRequiredText({
     value: name,
     fieldName: "name",
-    min: 2,
+    min: 1,
     max: 80,
   });
-  const normalizedAddress = normalizeRequiredText({
+  const resolvedAddress = resolveTextWithFallback({
     value: address,
+    fallback: ADMIN_CREATE_BARBERSHOP_DEFAULTS.address,
+  });
+  const resolvedDescription = resolveTextWithFallback({
+    value: description,
+    fallback: ADMIN_CREATE_BARBERSHOP_DEFAULTS.description,
+  });
+  const normalizedAddress = normalizeRequiredText({
+    value: resolvedAddress,
     fieldName: "address",
     min: 5,
     max: 200,
   });
   const normalizedDescription = normalizeRequiredText({
-    value: description,
+    value: resolvedDescription,
     fieldName: "description",
     min: 10,
     max: 1000,
   });
-  const normalizedPhones = normalizePhones(phones);
-  const normalizedImageUrl = normalizeOptionalValue(imageUrl);
-  const normalizedLogoUrl = normalizeOptionalValue(logoUrl);
-
-  if (!normalizedPhones) {
-    throw new AdminBarbershopError({
-      message: "Informe pelo menos um telefone válido.",
-      code: "VALIDATION",
-      field: "phones",
-    });
-  }
+  const normalizedPhones =
+    normalizePhones(phones, {
+      allowEmpty: true,
+      fallbackWhenMissing: ADMIN_CREATE_BARBERSHOP_DEFAULTS.phones,
+    }) ?? [...ADMIN_CREATE_BARBERSHOP_DEFAULTS.phones];
+  const normalizedImageUrl = normalizeOptionalValue(
+    imageUrl ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.imageUrl,
+  );
+  const normalizedLogoUrl = normalizeOptionalValue(
+    logoUrl ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.logoUrl,
+  );
+  const normalizedExclusiveBarber =
+    exclusiveBarber ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.exclusiveBarber;
+  const normalizedStripeEnabled =
+    stripeEnabled ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.stripeEnabled;
 
   if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
     throw new AdminBarbershopError({
@@ -742,8 +780,8 @@ export const adminCreateBarbershop = async ({
           imageUrl: normalizedImageUrl,
           logoUrl: normalizedLogoUrl,
           phones: normalizedPhones,
-          exclusiveBarber,
-          stripeEnabled,
+          exclusiveBarber: normalizedExclusiveBarber,
+          stripeEnabled: normalizedStripeEnabled,
           plan: planConfig.plan,
           whatsappProvider: planConfig.whatsappProvider,
           whatsappFrom: planConfig.whatsappFrom,
