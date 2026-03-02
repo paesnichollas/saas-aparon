@@ -185,10 +185,11 @@ const OwnerPage = async () => {
           slug={barbershop.slug}
           shareLink={shareLink}
         />
-        <PaymentSettingsForm
+        {/* Procurar para habilitar stripe */}
+        {/* <PaymentSettingsForm
           barbershopId={barbershop.id}
           stripeEnabled={barbershop.stripeEnabled}
-        />
+        /> */}
         <WhatsAppAutomationSettingsCard
           plan={barbershop.plan}
           initialSettings={
