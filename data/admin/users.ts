@@ -227,7 +227,7 @@ export const adminUpdateUserRole = async ({
 
   const updatedUser = await prisma.$transaction(async (tx) => {
     if (targetUser.ownedBarbershop && role === "CUSTOMER") {
-      await tx.barbershop.update({
+      await tx.barbershop.updateMany({
         where: {
           id: targetUser.ownedBarbershop.id,
         },
@@ -342,7 +342,7 @@ export const adminDisableBarbershopAccess = async ({
   return prisma.$transaction(async (tx) => {
     const barbershop = await getBarbershopById(tx, normalizedBarbershopId);
 
-    await tx.barbershop.update({
+    await tx.barbershop.updateMany({
       where: {
         id: barbershop.id,
       },
@@ -383,7 +383,7 @@ export const adminEnableBarbershopAccess = async ({
   return prisma.$transaction(async (tx) => {
     const barbershop = await getBarbershopById(tx, normalizedBarbershopId);
 
-    await tx.barbershop.update({
+    await tx.barbershop.updateMany({
       where: {
         id: barbershop.id,
       },
