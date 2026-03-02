@@ -116,8 +116,31 @@ const BARBERSHOP_LIST_ITEM_SELECT = {
   ratingsCount: true,
 } satisfies Prisma.BarbershopSelect;
 
+const BARBERSHOP_SEARCH_SELECT = {
+  ...BARBERSHOP_LIST_ITEM_SELECT,
+  description: true,
+  services: {
+    where: {
+      deletedAt: null,
+    },
+    select: {
+      name: true,
+      description: true,
+    },
+  },
+  barbers: {
+    select: {
+      name: true,
+    },
+  },
+} satisfies Prisma.BarbershopSelect;
+
 type BarbershopListRecord = Prisma.BarbershopGetPayload<{
   select: typeof BARBERSHOP_LIST_ITEM_SELECT;
+}>;
+
+type BarbershopSearchRecord = Prisma.BarbershopGetPayload<{
+  select: typeof BARBERSHOP_SEARCH_SELECT;
 }>;
 
 const mapBarbershopListItem = (
@@ -133,6 +156,30 @@ const mapBarbershopListItem = (
     avgRating: barbershop.avgRating,
     ratingsCount: barbershop.ratingsCount,
   };
+};
+
+const normalizeSearchText = (value: string) => {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
+
+const matchesBarbershopSearchTerm = (
+  barbershop: BarbershopSearchRecord,
+  normalizedSearchTerm: string,
+) => {
+  const searchableText = [
+    barbershop.name,
+    barbershop.description,
+    barbershop.address,
+    ...barbershop.services.flatMap((service) => {
+      return [service.name, service.description];
+    }),
+    ...barbershop.barbers.map((barber) => barber.name),
+  ]
+    .filter((value): value is string => Boolean(value && value.trim()))
+    .map(normalizeSearchText)
+    .join(" ");
+
+  return searchableText.includes(normalizedSearchTerm);
 };
 
 const normalizeListLimit = (limit: number, fallback: number) => {
@@ -544,23 +591,34 @@ export const resolveBarbershopByShareToken = async (shareToken: string) => {
 };
 
 export const getBarbershopsByServiceName = async (serviceName: string) => {
+  const normalizedServiceName = serviceName.trim();
+
+  if (!normalizedServiceName) {
+    return [];
+  }
+
+  const normalizedSearchTerm = normalizeSearchText(normalizedServiceName);
+
+  if (!normalizedSearchTerm) {
+    return [];
+  }
+
   const barbershops = await prisma.barbershop.findMany({
-    select: BARBERSHOP_LIST_ITEM_SELECT,
+    select: BARBERSHOP_SEARCH_SELECT,
     where: {
       isActive: true,
       exclusiveBarber: false,
-      services: {
-        some: {
-          deletedAt: null,
-          name: {
-            contains: serviceName,
-            mode: "insensitive",
-          },
-        },
-      },
+    },
+    orderBy: {
+      name: "asc",
     },
   });
-  return barbershops.map(mapBarbershopListItem);
+
+  return barbershops
+    .filter((barbershop) =>
+      matchesBarbershopSearchTerm(barbershop, normalizedSearchTerm),
+    )
+    .map(mapBarbershopListItem);
 };
 
 export const getAdminBarbershopByUserId = async (userId: string) => {
