@@ -21,10 +21,12 @@ import {
   getBookingStartDate,
 } from "@/lib/booking-calculations";
 import { getBookingStatus } from "@/lib/booking-status";
+import { getReviewEligibility } from "@/lib/review";
+import { buildBookingReceiptWhatsAppLink } from "@/lib/whatsapp";
 import BookingSummary from "./booking-summary";
 import CopyButton from "@/app/barbershops/[id]/_components/copy-button";
 import { Avatar, AvatarImage } from "./ui/avatar";
-import { Smartphone, Loader2 } from "lucide-react";
+import { Loader2, MessageCircle, Smartphone } from "lucide-react";
 import { cancelBooking } from "@/actions/cancel-booking";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
@@ -32,6 +34,7 @@ import { resolveBarbershopImageUrl } from "@/lib/image-fallback";
 import { formatPhoneBRDisplay } from "@/lib/phone";
 import { useState } from "react";
 import BookingReviewDialog from "./booking-review-dialog";
+import { authClient } from "@/lib/auth-client";
 
 interface BookingInfoSheetProps {
   booking: BookingWithRelations;
@@ -40,16 +43,20 @@ interface BookingInfoSheetProps {
 
 const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
   const bookingStartAt = getBookingStartDate(booking);
-  const bookingCompletionDate = booking.endAt ?? booking.date;
   const barbershopImageUrl = resolveBarbershopImageUrl(booking.barbershop.imageUrl);
   const status = getBookingStatus(bookingStartAt, booking.cancelledAt);
   const [hasReview, setHasReview] = useState(Boolean(booking.review));
-  const canCreateReview =
-    status === "finished" &&
-    !hasReview &&
-    booking.cancelledAt === null &&
-    booking.paymentStatus === "PAID" &&
-    bookingCompletionDate < new Date();
+  const { data: sessionData } = authClient.useSession();
+  const reviewEligibility = getReviewEligibility({
+    actorUserId: sessionData?.user.id ?? "",
+    bookingUserId: booking.userId,
+    cancelledAt: booking.cancelledAt,
+    date: bookingStartAt,
+    paymentStatus: booking.paymentStatus,
+    hasReview,
+    now: new Date(),
+  });
+  const canCreateReview = reviewEligibility.canReview;
   const { executeAsync: executeCancelBooking, isPending: isCancelling } =
     useAction(cancelBooking);
   const bookingServices =
@@ -75,6 +82,25 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
   const displayPhones = booking.barbershop.phones
     .map((phone) => formatPhoneBRDisplay(phone))
     .filter((phone) => phone.length > 0);
+  const canDisplayBookingReceiptButton =
+    status === "confirmed" || status === "finished";
+  const ownerPhone = booking.barbershop.owner?.phone?.trim() ?? null;
+  const barbershopPrimaryPhone =
+    ownerPhone ??
+    booking.barbershop.phones
+      .map((phone) => phone.trim())
+      .find((phone) => phone.length > 0) ?? null;
+  const bookingReceiptLink =
+    canDisplayBookingReceiptButton && barbershopPrimaryPhone
+      ? buildBookingReceiptWhatsAppLink({
+          phone: barbershopPrimaryPhone,
+          customerName: sessionData?.user.name,
+          barberName: booking.barber?.name,
+          bookingStartAt,
+          serviceNames: bookingServices.map((service) => service.name),
+          totalPriceInCents: booking.totalPriceInCents,
+        })
+      : null;
 
   const handleCancelBooking = async () => {
     const result = await executeCancelBooking({ bookingId: booking.id });
@@ -91,6 +117,14 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
 
     toast.success("Agendamento cancelado com sucesso!");
     onClose();
+  };
+
+  const handleSendBookingReceipt = () => {
+    if (!bookingReceiptLink) {
+      return;
+    }
+
+    window.open(bookingReceiptLink, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -162,7 +196,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
         )}
       </div>
 
-      <div className="flex gap-3 border-t px-5 py-6">
+      <div className="flex flex-wrap gap-3 border-t px-5 py-6">
         <Button
           variant="outline"
           className="flex-1 rounded-full"
@@ -171,6 +205,19 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
         >
           Voltar
         </Button>
+
+        {bookingReceiptLink ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 gap-2 rounded-full"
+            onClick={handleSendBookingReceipt}
+            data-testid="booking-send-receipt-whatsapp"
+          >
+            <MessageCircle className="size-4" />
+            Enviar comprovante
+          </Button>
+        ) : null}
 
         {status === "confirmed" && (
           <AlertDialog>
@@ -210,7 +257,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
           </AlertDialog>
         )}
 
-        {status === "finished" && hasReview && (
+        {hasReview && (
           <Button
             type="button"
             variant="secondary"
@@ -221,7 +268,7 @@ const BookingInfoSheet = ({ booking, onClose }: BookingInfoSheetProps) => {
           </Button>
         )}
 
-        {canCreateReview && (
+        {!hasReview && canCreateReview && (
           <BookingReviewDialog
             bookingId={booking.id}
             onReviewed={() => setHasReview(true)}

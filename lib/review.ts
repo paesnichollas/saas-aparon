@@ -15,7 +15,6 @@ export interface ReviewEligibilityInput {
   bookingUserId: string;
   cancelledAt: Date | null;
   date: Date;
-  endAt: Date | null;
   paymentStatus: ReviewPaymentStatus;
   hasReview: boolean;
   now?: Date;
@@ -64,19 +63,11 @@ export interface ReviewSummaryTransaction {
   };
 }
 
-export const getReviewCompletionDate = (input: {
-  date: Date;
-  endAt: Date | null;
-}) => {
-  return input.endAt ?? input.date;
-};
-
 export const getReviewEligibility = ({
   actorUserId,
   bookingUserId,
   cancelledAt,
   date,
-  endAt,
   paymentStatus,
   hasReview,
   now = new Date(),
@@ -109,7 +100,7 @@ export const getReviewEligibility = ({
     };
   }
 
-  if (getReviewCompletionDate({ date, endAt }) >= now) {
+  if (date > now) {
     return {
       canReview: false,
       reason: "not-finished",

@@ -14,6 +14,7 @@ import {
   normalizeOptionalReviewComment,
   refreshBarbershopRatingSummary,
 } from "@/lib/review";
+import { getBookingStartDate } from "@/lib/booking-calculations";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
 
@@ -42,7 +43,7 @@ const getReviewValidationErrorMessage = (
     return "Somente agendamentos pagos podem ser avaliados.";
   }
 
-  return "Você só pode avaliar após a conclusão do atendimento.";
+  return "Você poderá avaliar quando o horário do seu atendimento começar.";
 };
 
 export const createReview = protectedActionClient
@@ -56,8 +57,8 @@ export const createReview = protectedActionClient
         id: true,
         userId: true,
         cancelledAt: true,
+        startAt: true,
         date: true,
-        endAt: true,
         paymentStatus: true,
         barbershopId: true,
         barbershop: {
@@ -84,8 +85,7 @@ export const createReview = protectedActionClient
       actorUserId: user.id,
       bookingUserId: booking.userId,
       cancelledAt: booking.cancelledAt,
-      date: booking.date,
-      endAt: booking.endAt,
+      date: getBookingStartDate(booking),
       paymentStatus: booking.paymentStatus,
       hasReview: Boolean(booking.review),
       now: new Date(),

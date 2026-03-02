@@ -21,7 +21,6 @@ describe("review", () => {
     const result = getReviewEligibility({
       ...baseEligibilityInput,
       date: new Date("2026-02-26T13:00:00.000Z"),
-      endAt: null,
       now,
     });
 
@@ -29,11 +28,21 @@ describe("review", () => {
     expect(result.reason).toBe("not-finished");
   });
 
+  it("allows reviewing when booking start date is exactly now", () => {
+    const result = getReviewEligibility({
+      ...baseEligibilityInput,
+      date: now,
+      now,
+    });
+
+    expect(result.canReview).toBe(true);
+    expect(result.reason).toBeNull();
+  });
+
   it("does not allow reviewing a canceled booking", () => {
     const result = getReviewEligibility({
       ...baseEligibilityInput,
       date: new Date("2026-02-26T10:00:00.000Z"),
-      endAt: null,
       cancelledAt: new Date("2026-02-26T09:30:00.000Z"),
       now,
     });
@@ -47,7 +56,6 @@ describe("review", () => {
       ...baseEligibilityInput,
       actorUserId: "user-2",
       date: new Date("2026-02-26T10:00:00.000Z"),
-      endAt: null,
       now,
     });
 
@@ -59,7 +67,6 @@ describe("review", () => {
     const result = getReviewEligibility({
       ...baseEligibilityInput,
       date: new Date("2026-02-26T10:00:00.000Z"),
-      endAt: null,
       hasReview: true,
       now,
     });
