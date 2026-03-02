@@ -12,10 +12,26 @@ const AuthPageFallback = () => {
   );
 };
 
-const AuthPage = async () => {
+interface AuthPageProps {
+  searchParams: Promise<{
+    forceLogin?: string | string[];
+  }>;
+}
+
+const parseStringSearchParam = (value: string | string[] | undefined) => {
+  if (!value) {
+    return null;
+  }
+
+  return Array.isArray(value) ? (value[0] ?? null) : value;
+};
+
+const AuthPage = async ({ searchParams }: AuthPageProps) => {
+  const resolvedSearchParams = await searchParams;
+  const forceLogin = parseStringSearchParam(resolvedSearchParams.forceLogin);
   const user = await getSessionUser();
 
-  if (user) {
+  if (user && forceLogin !== "1") {
     redirect("/");
   }
 

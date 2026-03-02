@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   CalendarDays,
@@ -13,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useState } from "react";
 
 import { type UserRole } from "@/generated/prisma/client";
 import { authClient } from "@/lib/auth-client";
@@ -51,17 +52,30 @@ const MenuSheet = ({
   userSummary = null,
 }: MenuSheetProps) => {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = async () => {
-    const { error } = await authClient.signOut();
-
-    if (error) {
-      toast.error(error.message);
+  const handleLogout = () => {
+    if (isLoggingOut) {
       return;
     }
 
-    router.replace("/auth");
-    router.refresh();
+    setIsLoggingOut(true);
+    queryClient.clear();
+    router.replace("/auth?forceLogin=1");
+
+    void authClient
+      .signOut()
+      .then(({ error }) => {
+        if (error && process.env.NODE_ENV !== "production") {
+          console.error("[menu-sheet] signOut failed", error);
+        }
+      })
+      .catch((error: unknown) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("[menu-sheet] signOut threw", error);
+        }
+      });
   };
 
   const displayPhone = userSummary?.phone
@@ -198,6 +212,7 @@ const MenuSheet = ({
                 variant="ghost"
                 className="justify-left w-fit text-left"
                 onClick={handleLogout}
+                disabled={isLoggingOut}
                 data-testid="menu-logout"
               >
                 <LogOut className="size-4" />
