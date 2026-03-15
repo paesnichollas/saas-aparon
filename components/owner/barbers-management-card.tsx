@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/table";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Pencil, Plus, Scissors, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useMutationFeedback } from "@/hooks/use-mutation-feedback";
 import { useAction } from "next-safe-action/hooks";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -82,38 +82,6 @@ const sortBarbersByName = (barbers: BarberListItem[]) => {
 const toFormValues = (barber: BarberListItem): BarberFormValues => ({
   name: barber.name,
 });
-
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  if (!validationErrors || typeof validationErrors !== "object") {
-    return null;
-  }
-
-  const rootErrors = (validationErrors as { _errors?: unknown })._errors;
-
-  if (Array.isArray(rootErrors) && typeof rootErrors[0] === "string") {
-    return rootErrors[0];
-  }
-
-  return null;
-};
-
-const getActionErrorMessage = (
-  validationErrors: unknown,
-  serverError: unknown,
-  fallbackMessage: string,
-) => {
-  const validationErrorMessage = getValidationErrorMessage(validationErrors);
-
-  if (validationErrorMessage) {
-    return validationErrorMessage;
-  }
-
-  if (serverError) {
-    return fallbackMessage;
-  }
-
-  return null;
-};
 
 const getBarberInitials = (name: string) => {
   const nameParts = name.trim().split(/\s+/);
@@ -184,8 +152,8 @@ const BarbersManagementCard = ({
   barbershopId,
   barbers,
 }: BarbersManagementCardProps) => {
-  const router = useRouter();
   const barberList = useMemo(() => sortBarbersByName(barbers), [barbers]);
+  const { handleResult } = useMutationFeedback();
   const [isBarberFormOpen, setIsBarberFormOpen] = useState(false);
   const [barberInEdition, setBarberInEdition] = useState<BarberListItem | null>(
     null,
@@ -275,27 +243,19 @@ const BarbersManagementCard = ({
         imageUrl,
       });
 
-      const updateErrorMessage = getActionErrorMessage(
-        updateResult.validationErrors,
-        updateResult.serverError,
-        "Erro ao atualizar barbeiro. Tente novamente.",
-      );
-
-      if (updateErrorMessage) {
-        toast.error(updateErrorMessage);
+      if (
+        handleResult(updateResult, {
+          fallbackMessage: "Erro ao atualizar barbeiro. Tente novamente.",
+          successMessage: "Barbeiro atualizado com sucesso.",
+          onSuccess: () => {
+            setIsBarberFormOpen(false);
+            setBarberInEdition(null);
+            barberForm.reset(DEFAULT_FORM_VALUES);
+          },
+        })
+      ) {
         return;
       }
-
-      if (!updateResult.data) {
-        toast.error("Erro ao atualizar barbeiro. Tente novamente.");
-        return;
-      }
-
-      setIsBarberFormOpen(false);
-      setBarberInEdition(null);
-      barberForm.reset(DEFAULT_FORM_VALUES);
-      toast.success("Barbeiro atualizado com sucesso.");
-      router.refresh();
       return;
     }
 
@@ -305,27 +265,19 @@ const BarbersManagementCard = ({
       imageUrl,
     });
 
-    const createErrorMessage = getActionErrorMessage(
-      createResult.validationErrors,
-      createResult.serverError,
-      "Erro ao criar barbeiro. Tente novamente.",
-    );
-
-    if (createErrorMessage) {
-      toast.error(createErrorMessage);
+    if (
+      handleResult(createResult, {
+        fallbackMessage: "Erro ao criar barbeiro. Tente novamente.",
+        successMessage: "Barbeiro criado com sucesso.",
+        onSuccess: () => {
+          setIsBarberFormOpen(false);
+          setBarberInEdition(null);
+          barberForm.reset(DEFAULT_FORM_VALUES);
+        },
+      })
+    ) {
       return;
     }
-
-    if (!createResult.data) {
-      toast.error("Erro ao criar barbeiro. Tente novamente.");
-      return;
-    }
-
-    setIsBarberFormOpen(false);
-    setBarberInEdition(null);
-    barberForm.reset(DEFAULT_FORM_VALUES);
-    toast.success("Barbeiro criado com sucesso.");
-    router.refresh();
   };
 
   const handleDeleteConfirm = async () => {
@@ -337,21 +289,14 @@ const BarbersManagementCard = ({
       barberId: barberToDelete.id,
     });
 
-    const deleteErrorMessage = getActionErrorMessage(
-      deleteResult.validationErrors,
-      deleteResult.serverError,
-      "Erro ao remover barbeiro. Tente novamente.",
-    );
-
-    if (deleteErrorMessage) {
-      toast.error(deleteErrorMessage);
-      return;
-    }
-
-    setIsDeleteDialogOpen(false);
-    setBarberToDelete(null);
-    toast.success("Barbeiro removido com sucesso.");
-    router.refresh();
+    handleResult(deleteResult, {
+      fallbackMessage: "Erro ao remover barbeiro. Tente novamente.",
+      successMessage: "Barbeiro removido com sucesso.",
+      onSuccess: () => {
+        setIsDeleteDialogOpen(false);
+        setBarberToDelete(null);
+      },
+    });
   };
 
   return (

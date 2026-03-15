@@ -20,6 +20,7 @@ import {
 import { cn, formatRating } from "@/lib/utils";
 import { Loader2, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getValidationErrorMessageWithNested } from "@/lib/action-errors";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -30,39 +31,6 @@ interface BookingReviewDialogProps {
 }
 
 const COMMENT_MAX_LENGTH = 600;
-
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  const getFirstErrorFromNode = (value: unknown): string | null => {
-    if (!value || typeof value !== "object") {
-      return null;
-    }
-
-    const errors = (value as { _errors?: unknown })._errors;
-
-    if (Array.isArray(errors)) {
-      const firstStringError = errors.find(
-        (errorItem): errorItem is string =>
-          typeof errorItem === "string" && errorItem.trim().length > 0,
-      );
-
-      if (firstStringError) {
-        return firstStringError;
-      }
-    }
-
-    for (const nestedValue of Object.values(value as Record<string, unknown>)) {
-      const nestedError = getFirstErrorFromNode(nestedValue);
-
-      if (nestedError) {
-        return nestedError;
-      }
-    }
-
-    return null;
-  };
-
-  return getFirstErrorFromNode(validationErrors);
-};
 
 const BookingReviewDialog = ({
   bookingId,
@@ -87,7 +55,7 @@ const BookingReviewDialog = ({
       comment,
     });
 
-    const validationErrorMessage = getValidationErrorMessage(result.validationErrors);
+    const validationErrorMessage = getValidationErrorMessageWithNested(result.validationErrors);
 
     if (validationErrorMessage) {
       toast.error(validationErrorMessage);

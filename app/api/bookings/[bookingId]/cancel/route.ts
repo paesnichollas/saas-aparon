@@ -1,6 +1,10 @@
-﻿import { cancelBooking } from "@/actions/cancel-booking";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { cancelBooking } from "@/actions/cancel-booking";
+import {
+  getServerErrorMessage,
+  getValidationErrorMessage,
+} from "@/lib/action-errors";
+import { parseParams, requireAuth } from "@/lib/api-action-adapter";
+import { normalizeForMessageMatch } from "@/lib/string-helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,26 +14,9 @@ const paramsSchema = z.object({
   bookingId: z.uuid(),
 });
 
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  if (!validationErrors || typeof validationErrors !== "object") {
-    return null;
-  }
-
-  const rootErrors = (validationErrors as { _errors?: unknown })._errors;
-  if (!Array.isArray(rootErrors) || rootErrors.length === 0) {
-    return null;
-  }
-
-  return typeof rootErrors[0] === "string" ? rootErrors[0] : null;
-};
-
-const normalizeForMessageMatch = (value: string) => {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-};
-
-const isUnauthorizedErrorMessage = (message: string) => {
-  const normalizedMessage = normalizeForMessageMatch(message);
-  return normalizedMessage.includes("nao autorizado") || normalizedMessage.includes("login");
+const isUnauthorizedMessage = (msg: string) => {
+  const n = normalizeForMessageMatch(msg);
+  return n.includes("nao autorizado") || n.includes("login");
 };
 
 interface CancelBookingRouteContext {
@@ -39,73 +26,47 @@ interface CancelBookingRouteContext {
 }
 
 export const POST = async (_request: Request, context: CancelBookingRouteContext) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      { status: 401 },
-    );
+  const user = await requireAuth();
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
-  const parsedParams = paramsSchema.safeParse(await context.params);
-
-  if (!parsedParams.success) {
+  const parsed = await parseParams(context.params, paramsSchema);
+  if (!parsed.success) {
     return NextResponse.json(
-      {
-        error: "Agendamento inválido.",
-      },
+      { error: "Agendamento inválido." },
       { status: 400 },
     );
   }
 
-  const cancelBookingResult = await cancelBooking({
-    bookingId: parsedParams.data.bookingId,
+  const result = await cancelBooking({
+    bookingId: parsed.data.bookingId,
   });
 
-  const validationMessage = getValidationErrorMessage(
-    cancelBookingResult.validationErrors,
-  );
+  const validationMessage = getValidationErrorMessage(result.validationErrors);
   if (validationMessage) {
-    return NextResponse.json(
-      {
-        error: validationMessage,
-      },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: validationMessage }, { status: 400 });
   }
 
-  const serverMessage =
-    typeof cancelBookingResult.serverError === "string" &&
-    cancelBookingResult.serverError.trim().length > 0
-      ? cancelBookingResult.serverError.trim()
-      : null;
+  const serverMessage = getServerErrorMessage(result.serverError);
   if (serverMessage) {
     return NextResponse.json(
-      {
-        error: serverMessage,
-      },
-      { status: isUnauthorizedErrorMessage(serverMessage) ? 401 : 500 },
+      { error: serverMessage },
+      { status: isUnauthorizedMessage(serverMessage) ? 401 : 500 },
     );
   }
 
-  if (!cancelBookingResult.data) {
+  if (!result.data) {
     return NextResponse.json(
-      {
-        error: "Não foi possível cancelar o agendamento.",
-      },
+      { error: "Não foi possível cancelar o agendamento." },
       { status: 500 },
     );
   }
 
   return NextResponse.json(
     {
-      bookingId: cancelBookingResult.data.id,
-      cancelledAt: cancelBookingResult.data.cancelledAt,
+      bookingId: result.data.id,
+      cancelledAt: result.data.cancelledAt,
     },
     { status: 200 },
   );

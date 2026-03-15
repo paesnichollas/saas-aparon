@@ -7,8 +7,16 @@ import {
   barbershopsListTag,
   popularBarbershopsTag,
 } from "@/lib/cache-tags";
+import { normalizeOptionalText } from "@/lib/string-helpers";
 
 interface RevalidatePublicBarbershopCacheInput {
+  barbershopId: string;
+  slug?: string | null;
+  previousSlug?: string | null;
+  publicSlug?: string | null;
+}
+
+interface RevalidateOwnerBarbershopCacheInput {
   barbershopId: string;
   slug?: string | null;
   previousSlug?: string | null;
@@ -20,11 +28,6 @@ interface RevalidateBookingSurfacesInput {
   includeOwner?: boolean;
   includeAdmin?: boolean;
 }
-
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim();
-  return normalizedValue && normalizedValue.length > 0 ? normalizedValue : null;
-};
 
 export const revalidatePublicBarbershopCache = ({
   barbershopId,
@@ -38,9 +41,9 @@ export const revalidatePublicBarbershopCache = ({
     return;
   }
 
-  const normalizedSlug = normalizeOptionalValue(slug);
-  const normalizedPreviousSlug = normalizeOptionalValue(previousSlug);
-  const normalizedPublicSlug = normalizeOptionalValue(publicSlug);
+  const normalizedSlug = normalizeOptionalText(slug);
+  const normalizedPreviousSlug = normalizeOptionalText(previousSlug);
+  const normalizedPublicSlug = normalizeOptionalText(publicSlug);
 
   revalidateTag(barbershopsListTag(), "max");
   revalidateTag(popularBarbershopsTag(), "max");
@@ -66,6 +69,21 @@ export const revalidatePublicBarbershopCache = ({
     revalidateTag(barbershopByPublicSlugTag(normalizedPublicSlug), "max");
     revalidatePath(`/s/${normalizedPublicSlug}`);
   }
+};
+
+export const revalidateOwnerBarbershopCache = ({
+  barbershopId,
+  slug,
+  previousSlug,
+  publicSlug,
+}: RevalidateOwnerBarbershopCacheInput) => {
+  revalidatePath("/owner");
+  revalidatePublicBarbershopCache({
+    barbershopId,
+    slug,
+    previousSlug,
+    publicSlug,
+  });
 };
 
 export const revalidateBookingSurfaces = ({

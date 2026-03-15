@@ -1,9 +1,10 @@
 "use server";
 
+import { getOwnerBarbershopContextForMutation } from "@/data/barbershops";
 import { protectedActionClient } from "@/lib/action-client";
-import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidateOwnerBarbershopCache } from "@/lib/cache-invalidation";
+import { normalizeOptionalText } from "@/lib/string-helpers";
+import { isValidImageUrl } from "@/lib/url-helpers";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
 
@@ -13,38 +14,10 @@ const inputSchema = z.object({
   imageUrl: z.string().trim().max(500).nullable().optional(),
 });
 
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim() ?? "";
-  return normalizedValue.length > 0 ? normalizedValue : null;
-};
-
-const hasValidImageUrl = (value: string) => {
-  if (value.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
-
 export const createBarber = protectedActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput: { barbershopId, name, imageUrl }, ctx: { user } }) => {
-    const barbershop = await prisma.barbershop.findFirst({
-      where: {
-        id: barbershopId,
-        ownerId: user.id,
-      },
-      select: {
-        id: true,
-        slug: true,
-        publicSlug: true,
-      },
-    });
+    const barbershop = await getOwnerBarbershopContextForMutation(barbershopId, user.id);
 
     if (!barbershop) {
       returnValidationErrors(inputSchema, {
@@ -52,14 +25,15 @@ export const createBarber = protectedActionClient
       });
     }
 
-    const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+    const normalizedImageUrl = normalizeOptionalText(imageUrl);
 
-    if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
+    if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
       returnValidationErrors(inputSchema, {
         _errors: ["A imagem enviada é inválida."],
       });
     }
 
+    const { prisma } = await import("@/lib/prisma");
     const createdBarber = await prisma.barber.create({
       data: {
         barbershopId: barbershop.id,
@@ -73,8 +47,7 @@ export const createBarber = protectedActionClient
       },
     });
 
-    revalidatePath("/owner");
-    revalidatePublicBarbershopCache({
+    revalidateOwnerBarbershopCache({
       barbershopId: barbershop.id,
       slug: barbershop.slug,
       publicSlug: barbershop.publicSlug,

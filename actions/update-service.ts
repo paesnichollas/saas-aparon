@@ -3,9 +3,10 @@
 import { getOwnerBarbershopIdByUserId } from "@/data/barbershops";
 import { getServiceById, updateServiceById } from "@/data/services";
 import { protectedActionClient } from "@/lib/action-client";
-import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { revalidateOwnerBarbershopCache } from "@/lib/cache-invalidation";
 import { resolveServiceImageUrl } from "@/lib/default-images";
-import { revalidatePath } from "next/cache";
+import { normalizeOptionalText } from "@/lib/string-helpers";
+import { isValidImageUrl } from "@/lib/url-helpers";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
 
@@ -17,24 +18,6 @@ const inputSchema = z.object({
   priceInCents: z.number().int().min(0).max(1_000_000),
   durationInMinutes: z.number().int().min(5).max(240),
 });
-
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim() ?? "";
-  return normalizedValue.length > 0 ? normalizedValue : null;
-};
-
-const hasValidImageUrl = (value: string) => {
-  if (value.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
 
 export const updateService = protectedActionClient
   .inputSchema(inputSchema)
@@ -73,14 +56,14 @@ export const updateService = protectedActionClient
       }
 
       const normalizedName = name.trim();
-      const normalizedDescription = normalizeOptionalValue(description);
-      const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+      const normalizedDescription = normalizeOptionalText(description);
+      const normalizedImageUrl = normalizeOptionalText(imageUrl);
       const resolvedImageUrl = resolveServiceImageUrl(
         normalizedImageUrl,
         normalizedName,
       );
 
-      if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
+      if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
         returnValidationErrors(inputSchema, {
           _errors: ["A imagem enviada é inválida."],
         });
@@ -94,8 +77,7 @@ export const updateService = protectedActionClient
         durationInMinutes,
       });
 
-      revalidatePath("/owner");
-      revalidatePublicBarbershopCache({
+      revalidateOwnerBarbershopCache({
         barbershopId: service.barbershop.id,
         slug: service.barbershop.slug,
         publicSlug: service.barbershop.publicSlug,

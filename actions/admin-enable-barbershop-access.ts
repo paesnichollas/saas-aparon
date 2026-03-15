@@ -2,7 +2,7 @@
 
 import { adminEnableBarbershopAccess } from "@/data/admin/users";
 import { protectedActionClient } from "@/lib/action-client";
-import { getActionErrorMessage } from "@/lib/action-errors";
+import { getActionErrorMessageFromError } from "@/lib/action-errors";
 import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -48,7 +48,7 @@ export const adminEnableBarbershopAccessAction = protectedActionClient
     } catch (error) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          getActionErrorMessage(error, "Falha ao reativar acesso da barbearia."),
+          getActionErrorMessageFromError(error, "Falha ao reativar acesso da barbearia."),
         ],
       });
     }

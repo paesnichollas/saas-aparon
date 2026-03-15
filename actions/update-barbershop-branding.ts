@@ -1,11 +1,12 @@
 "use server";
 
-import { ensureBarbershopPublicSlug } from "@/data/barbershops";
+import { ensureBarbershopPublicSlug, getOwnerBarbershopContextForMutation } from "@/data/barbershops";
 import { protectedActionClient } from "@/lib/action-client";
-import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { revalidateOwnerBarbershopCache } from "@/lib/cache-invalidation";
 import { DEFAULT_BANNER_IMAGE_URL } from "@/lib/default-images";
+import { normalizeOptionalText, normalizePhones } from "@/lib/string-helpers";
+import { isValidImageUrl } from "@/lib/url-helpers";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
 
@@ -20,24 +21,6 @@ const inputSchema = z.object({
   imageUrl: z.string().trim().max(500).nullable().optional(),
   slug: z.string().trim().min(3).max(60).regex(slugRegex),
 });
-
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim() ?? "";
-  return normalizedValue.length > 0 ? normalizedValue : null;
-};
-
-const hasValidImageUrl = (value: string) => {
-  if (value.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
 
 export const updateBarbershopBranding = protectedActionClient
   .inputSchema(inputSchema)
@@ -54,16 +37,10 @@ export const updateBarbershopBranding = protectedActionClient
       },
       ctx: { user },
     }) => {
-      const barbershop = await prisma.barbershop.findFirst({
-        where: {
-          id: barbershopId,
-          ownerId: user.id,
-        },
-        select: {
-          id: true,
-          slug: true,
-        },
-      });
+      const barbershop = await getOwnerBarbershopContextForMutation(
+        barbershopId,
+        user.id,
+      );
 
       if (!barbershop) {
         returnValidationErrors(inputSchema, {
@@ -89,17 +66,17 @@ export const updateBarbershopBranding = protectedActionClient
         });
       }
 
-      const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+      const normalizedImageUrl = normalizeOptionalText(imageUrl);
       const resolvedImageUrl = normalizedImageUrl ?? DEFAULT_BANNER_IMAGE_URL;
-      const normalizedPhones = phones.map((phone) => phone.trim()).filter(Boolean);
+      const normalizedPhones = normalizePhones(phones, { allowEmpty: false });
 
-      if (normalizedPhones.length === 0) {
+      if (!normalizedPhones || normalizedPhones.length === 0) {
         returnValidationErrors(inputSchema, {
           _errors: ["Informe pelo menos um telefone de contato."],
         });
       }
 
-      if (!hasValidImageUrl(resolvedImageUrl)) {
+      if (!isValidImageUrl(resolvedImageUrl)) {
         returnValidationErrors(inputSchema, {
           _errors: ["A imagem de fundo enviada é inválida."],
         });
@@ -130,8 +107,7 @@ export const updateBarbershopBranding = protectedActionClient
 
       const publicSlug = await ensureBarbershopPublicSlug(updatedBarbershop.id);
 
-      revalidatePath("/owner");
-      revalidatePublicBarbershopCache({
+      revalidateOwnerBarbershopCache({
         barbershopId: updatedBarbershop.id,
         slug: updatedBarbershop.slug,
         previousSlug: barbershop.slug,

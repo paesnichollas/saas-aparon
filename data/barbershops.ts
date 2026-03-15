@@ -763,5 +763,22 @@ export const getAdminBarbershopIdByUserId = async (userId: string) => {
   return barbershop;
 };
 
+export const getOwnerBarbershopContextForMutation = async (
+  barbershopId: string,
+  ownerId: string,
+) => {
+  return prisma.barbershop.findFirst({
+    where: {
+      id: barbershopId,
+      ownerId,
+    },
+    select: {
+      id: true,
+      slug: true,
+      publicSlug: true,
+    },
+  });
+};
+
 export const getOwnerBarbershopByUserId = getAdminBarbershopByUserId;
 export const getOwnerBarbershopIdByUserId = getAdminBarbershopIdByUserId;

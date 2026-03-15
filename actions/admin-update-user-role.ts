@@ -2,7 +2,7 @@
 
 import { adminUpdateUserRole } from "@/data/admin/users";
 import { adminActionClient } from "@/lib/action-client";
-import { getActionErrorMessage } from "@/lib/action-errors";
+import { getActionErrorMessageFromError } from "@/lib/action-errors";
 import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
@@ -26,7 +26,7 @@ export const adminUpdateUserRoleAction = adminActionClient
     } catch (error) {
       returnValidationErrors(inputSchema, {
         _errors: [
-          getActionErrorMessage(error, "Falha ao atualizar papel do usuário."),
+          getActionErrorMessageFromError(error, "Falha ao atualizar papel do usuário."),
         ],
       });
     }

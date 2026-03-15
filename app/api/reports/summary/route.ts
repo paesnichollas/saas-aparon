@@ -3,15 +3,10 @@ import {
   getMonthlyReportRanges,
   getWeeklyReportRanges,
   getYearlyReportRanges,
-  parseReportMonth,
-  parseReportYear,
-  resolveReportBarbershopIdForRole,
   resolveSummaryMonth,
   toRangeResponse,
 } from "@/data/reports-shared";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
+import { resolveReportRouteContext } from "@/lib/reports-route-helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -41,21 +36,6 @@ const calculateDeltaPercent = (current: number, previous: number) => {
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      {
-        status: 401,
-      },
-    );
-  }
-
   const requestUrl = new URL(request.url);
   const parsedQuery = querySchema.safeParse({
     period: requestUrl.searchParams.get("period") ?? undefined,
@@ -66,102 +46,34 @@ export async function GET(request: Request) {
 
   if (!parsedQuery.success) {
     return NextResponse.json(
-      {
-        error: "Parâmetros inválidos.",
-      },
-      {
-        status: 400,
-      },
+      { error: "Parâmetros inválidos." },
+      { status: 400 },
     );
   }
 
-  const year = parseReportYear(parsedQuery.data.year);
-
-  if (year === null) {
-    return NextResponse.json(
-      {
-        error: "Ano inválido.",
-      },
-      {
-        status: 400,
-      },
-    );
-  }
-
-  const requestedMonth = parseReportMonth(parsedQuery.data.month);
-
-  if (parsedQuery.data.month && requestedMonth === null) {
-    return NextResponse.json(
-      {
-        error: "Mês inválido.",
-      },
-      {
-        status: 400,
-      },
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      role: true,
-    },
+  const resolved = await resolveReportRouteContext({
+    year: parsedQuery.data.year,
+    month: parsedQuery.data.month,
+    barbershopId: parsedQuery.data.barbershopId,
   });
 
-  if (!user) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      {
-        status: 401,
-      },
-    );
+  if (!resolved.ok) {
+    return resolved.response;
   }
 
-  if (user.role !== "OWNER" && user.role !== "ADMIN") {
-    return NextResponse.json(
-      {
-        error: "Acesso negado.",
-      },
-      {
-        status: 403,
-      },
-    );
-  }
-
-  const resolvedBarbershop = await resolveReportBarbershopIdForRole({
-    userId: user.id,
-    role: user.role,
-    requestedBarbershopId: parsedQuery.data.barbershopId,
-  });
-
-  if (!resolvedBarbershop.ok) {
-    return NextResponse.json(
-      {
-        error: resolvedBarbershop.error,
-      },
-      {
-        status: resolvedBarbershop.status,
-      },
-    );
-  }
-
+  const { barbershopId, year, month } = resolved.context;
   const period = parsedQuery.data.period;
   let ranges: ReturnType<typeof getWeeklyReportRanges> | null = null;
 
   if (period === "week") {
     ranges = getWeeklyReportRanges();
   } else if (period === "month") {
-    const month = resolveSummaryMonth({
+    const resolvedMonth = resolveSummaryMonth({
       year,
-      requestedMonth,
+      requestedMonth: month,
     });
 
-    ranges = getMonthlyReportRanges(year, month);
+    ranges = getMonthlyReportRanges(year, resolvedMonth);
   } else {
     ranges = getYearlyReportRanges(year);
   }
@@ -179,11 +91,11 @@ export async function GET(request: Request) {
 
   const [current, previous] = await Promise.all([
     aggregateReportMetrics({
-      barbershopId: resolvedBarbershop.barbershopId,
+      barbershopId,
       range: ranges.current,
     }),
     aggregateReportMetrics({
-      barbershopId: resolvedBarbershop.barbershopId,
+      barbershopId,
       range: ranges.previous,
     }),
   ]);
@@ -213,6 +125,5 @@ export async function GET(request: Request) {
   );
 
   response.headers.set("cache-control", "no-store");
-
   return response;
 }

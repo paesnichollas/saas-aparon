@@ -1,5 +1,9 @@
 import { createBookingCheckoutSession } from "@/actions/create-booking-checkout-session";
-import { auth } from "@/lib/auth";
+import {
+  getServerErrorMessage,
+  getValidationErrorMessage,
+} from "@/lib/action-errors";
+import { parseBody, requireAuth } from "@/lib/api-action-adapter";
 import { parseBookingDateTime } from "@/lib/booking-time";
 import {
   PROFILE_INCOMPLETE_ERROR_MESSAGE,
@@ -8,7 +12,7 @@ import {
   getSafeReturnToPath,
   isProfileIncompleteCode,
 } from "@/lib/profile-completion";
-import { headers } from "next/headers";
+import { normalizeForMessageMatch } from "@/lib/string-helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -22,51 +26,21 @@ const requestSchema = z.object({
   paymentMethod: z.enum(["STRIPE", "IN_PERSON"]).optional(),
 });
 
-const INVALID_REQUEST_MESSAGE = "Requisição inválida.";
 const INVALID_DATE_MESSAGE =
   "Data e horário inválidos. Use o formato YYYY-MM-DDTHH:mm:ss.";
 
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  if (!validationErrors || typeof validationErrors !== "object") {
-    return null;
-  }
-
-  const rootErrors = (validationErrors as { _errors?: unknown })._errors;
-  if (!Array.isArray(rootErrors) || rootErrors.length === 0) {
-    return null;
-  }
-
-  return typeof rootErrors[0] === "string" ? rootErrors[0] : null;
-};
-
-const getServerErrorMessage = (serverError: unknown) => {
-  if (typeof serverError === "string" && serverError.trim().length > 0) {
-    return serverError.trim();
-  }
-
-  return null;
-};
-
-const normalizeForMessageMatch = (value: string) => {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-};
-
-const isUnauthorizedErrorMessage = (message: string) => {
-  const normalizedMessage = normalizeForMessageMatch(message);
+const isUnauthorizedMessage = (msg: string) => {
+  const n = normalizeForMessageMatch(msg);
   return (
-    normalizedMessage.includes("nao autorizado") ||
-    normalizedMessage.includes("não autorizado") ||
-    normalizedMessage.includes("login")
+    n.includes("nao autorizado") ||
+    n.includes("não autorizado") ||
+    n.includes("login")
   );
 };
 
-const isProfileIncompleteErrorMessage = (message: string) => {
-  return isProfileIncompleteCode(message);
-};
-
-const isConflictErrorMessage = (message: string) => {
-  const normalizedMessage = message.toLowerCase();
-  return normalizedMessage.includes("agendad") || normalizedMessage.includes("ocupad");
+const isConflictMessage = (msg: string) => {
+  const n = msg.toLowerCase();
+  return n.includes("agendad") || n.includes("ocupad");
 };
 
 const getCompleteProfileRedirectUrlFromRequest = (request: Request) => {
@@ -86,42 +60,17 @@ const getCompleteProfileRedirectUrlFromRequest = (request: Request) => {
 };
 
 export const POST = async (request: Request) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      { status: 401 },
-    );
+  const user = await requireAuth();
+  if (!user) {
+    return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
   }
 
-  let requestBody: unknown;
-  try {
-    requestBody = await request.json();
-  } catch {
-    return NextResponse.json(
-      {
-        error: INVALID_REQUEST_MESSAGE,
-      },
-      { status: 400 },
-    );
+  const parsed = await parseBody(request, requestSchema);
+  if (!parsed.success) {
+    return parsed.response;
   }
 
-  const parsedRequest = requestSchema.safeParse(requestBody);
-  if (!parsedRequest.success) {
-    return NextResponse.json(
-      {
-        error: INVALID_REQUEST_MESSAGE,
-      },
-      { status: 400 },
-    );
-  }
-
-  const bookingDate = parseBookingDateTime(parsedRequest.data.date);
+  const bookingDate = parseBookingDateTime(parsed.data.date);
   if (!bookingDate) {
     return NextResponse.json(
       {
@@ -131,29 +80,25 @@ export const POST = async (request: Request) => {
     );
   }
 
-  const createBookingResult = await createBookingCheckoutSession({
-    barbershopId: parsedRequest.data.barbershopId,
-    barberId: parsedRequest.data.barberId,
-    serviceIds: [parsedRequest.data.serviceId],
+  const result = await createBookingCheckoutSession({
+    barbershopId: parsed.data.barbershopId,
+    barberId: parsed.data.barberId,
+    serviceIds: [parsed.data.serviceId],
     startAt: bookingDate,
-    paymentMethod: parsedRequest.data.paymentMethod,
+    paymentMethod: parsed.data.paymentMethod,
   });
 
-  const validationMessage = getValidationErrorMessage(
-    createBookingResult.validationErrors,
-  );
+  const validationMessage = getValidationErrorMessage(result.validationErrors);
   if (validationMessage) {
     return NextResponse.json(
-      {
-        error: validationMessage,
-      },
-      { status: isConflictErrorMessage(validationMessage) ? 409 : 400 },
+      { error: validationMessage },
+      { status: isConflictMessage(validationMessage) ? 409 : 400 },
     );
   }
 
-  const serverMessage = getServerErrorMessage(createBookingResult.serverError);
+  const serverMessage = getServerErrorMessage(result.serverError);
   if (serverMessage) {
-    if (isProfileIncompleteErrorMessage(serverMessage)) {
+    if (isProfileIncompleteCode(serverMessage)) {
       return NextResponse.json(
         {
           code: PROFILE_INCOMPLETE_CODE,
@@ -165,14 +110,12 @@ export const POST = async (request: Request) => {
     }
 
     return NextResponse.json(
-      {
-        error: serverMessage,
-      },
-      { status: isUnauthorizedErrorMessage(serverMessage) ? 401 : 500 },
+      { error: serverMessage },
+      { status: isUnauthorizedMessage(serverMessage) ? 401 : 500 },
     );
   }
 
-  if (!createBookingResult.data) {
+  if (!result.data) {
     return NextResponse.json(
       {
         error: "Não foi possível criar o agendamento.",
@@ -181,10 +124,10 @@ export const POST = async (request: Request) => {
     );
   }
 
-  if (createBookingResult.data.kind === "created") {
+  if (result.data.kind === "created") {
     return NextResponse.json(
       {
-        bookingId: createBookingResult.data.bookingId,
+        bookingId: result.data.bookingId,
         requiresCheckout: false,
       },
       { status: 201 },
@@ -193,10 +136,10 @@ export const POST = async (request: Request) => {
 
   return NextResponse.json(
     {
-      bookingId: createBookingResult.data.bookingId,
+      bookingId: result.data.bookingId,
       requiresCheckout: true,
-      sessionId: createBookingResult.data.sessionId,
-      checkoutUrl: createBookingResult.data.checkoutUrl,
+      sessionId: result.data.sessionId,
+      checkoutUrl: result.data.checkoutUrl,
     },
     { status: 201 },
   );

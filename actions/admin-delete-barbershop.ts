@@ -2,7 +2,7 @@
 
 import { adminDeleteBarbershopSafely } from "@/data/admin/barbershops";
 import { adminActionClient } from "@/lib/action-client";
-import { getActionErrorMessage } from "@/lib/action-errors";
+import { getActionErrorMessageFromError } from "@/lib/action-errors";
 import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
 import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
@@ -31,7 +31,7 @@ export const adminDeleteBarbershopAction = adminActionClient
       return deletedBarbershop;
     } catch (error) {
       returnValidationErrors(inputSchema, {
-        _errors: [getActionErrorMessage(error, "Falha ao excluir barbearia.")],
+        _errors: [getActionErrorMessageFromError(error, "Falha ao excluir barbearia.")],
       });
     }
   });

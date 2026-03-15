@@ -1,9 +1,11 @@
 "use server";
 
+import { getBarberByIdWithOwnerCheck } from "@/data/barbers";
 import { protectedActionClient } from "@/lib/action-client";
-import { revalidatePublicBarbershopCache } from "@/lib/cache-invalidation";
+import { revalidateOwnerBarbershopCache } from "@/lib/cache-invalidation";
+import { normalizeOptionalText } from "@/lib/string-helpers";
+import { isValidImageUrl } from "@/lib/url-helpers";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { returnValidationErrors } from "next-safe-action";
 import { z } from "zod";
 
@@ -13,45 +15,10 @@ const inputSchema = z.object({
   imageUrl: z.string().trim().max(500).nullable().optional(),
 });
 
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim() ?? "";
-  return normalizedValue.length > 0 ? normalizedValue : null;
-};
-
-const hasValidImageUrl = (value: string) => {
-  if (value.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
-
 export const updateBarber = protectedActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput: { barberId, name, imageUrl }, ctx: { user } }) => {
-    const barber = await prisma.barber.findFirst({
-      where: {
-        id: barberId,
-        barbershop: {
-          ownerId: user.id,
-        },
-      },
-      select: {
-        id: true,
-        barbershop: {
-          select: {
-            id: true,
-            slug: true,
-            publicSlug: true,
-          },
-        },
-      },
-    });
+    const barber = await getBarberByIdWithOwnerCheck(barberId, user.id);
 
     if (!barber) {
       returnValidationErrors(inputSchema, {
@@ -59,9 +26,9 @@ export const updateBarber = protectedActionClient
       });
     }
 
-    const normalizedImageUrl = normalizeOptionalValue(imageUrl);
+    const normalizedImageUrl = normalizeOptionalText(imageUrl);
 
-    if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
+    if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
       returnValidationErrors(inputSchema, {
         _errors: ["A imagem enviada é inválida."],
       });
@@ -82,8 +49,7 @@ export const updateBarber = protectedActionClient
       },
     });
 
-    revalidatePath("/owner");
-    revalidatePublicBarbershopCache({
+    revalidateOwnerBarbershopCache({
       barbershopId: barber.barbershop.id,
       slug: barber.barbershop.slug,
       publicSlug: barber.barbershop.publicSlug,

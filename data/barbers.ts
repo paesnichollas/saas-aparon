@@ -1,5 +1,29 @@
 import { prisma } from "@/lib/prisma";
 
+export const getBarberByIdWithOwnerCheck = async (
+  barberId: string,
+  ownerId: string,
+) => {
+  return prisma.barber.findFirst({
+    where: {
+      id: barberId,
+      barbershop: {
+        ownerId,
+      },
+    },
+    select: {
+      id: true,
+      barbershop: {
+        select: {
+          id: true,
+          slug: true,
+          publicSlug: true,
+        },
+      },
+    },
+  });
+};
+
 export const getBarbersByBarbershopId = async (barbershopId: string) => {
   return prisma.barber.findMany({
     where: {

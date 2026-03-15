@@ -7,6 +7,8 @@ import { cancelFuturePendingBarbershopNotificationJobs } from "@/lib/notificatio
 import { buildPublicSlugCandidate, getPublicSlugBase } from "@/lib/public-slug";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/rbac";
+import { normalizeOptionalText, normalizePhones } from "@/lib/string-helpers";
+import { isValidImageUrl } from "@/lib/url-helpers";
 
 const DEFAULT_PAGE_SIZE = 12;
 const MAX_PAGE_SIZE = 50;
@@ -277,24 +279,16 @@ const normalizeSearch = (search: string | undefined) => {
   return normalizedSearch?.length ? normalizedSearch : null;
 };
 
-const normalizePhones = (
+const normalizePhonesWithValidation = (
   phones: string[] | undefined,
   options?: {
     allowEmpty?: boolean;
     fallbackWhenMissing?: string[];
   },
 ) => {
-  if (!phones) {
-    if (options?.fallbackWhenMissing) {
-      return [...options.fallbackWhenMissing];
-    }
+  const result = normalizePhones(phones, options);
 
-    return undefined;
-  }
-
-  const normalizedPhones = phones.map((phone) => phone.trim()).filter(Boolean);
-
-  if (normalizedPhones.length === 0 && !options?.allowEmpty) {
+  if (result === null) {
     throw new AdminBarbershopError({
       message: "Informe pelo menos um telefone válido.",
       code: "VALIDATION",
@@ -302,17 +296,11 @@ const normalizePhones = (
     });
   }
 
-  return normalizedPhones;
-};
-
-const normalizeOptionalValue = (value: string | null | undefined) => {
-  const normalizedValue = value?.trim() ?? "";
-  return normalizedValue.length > 0 ? normalizedValue : null;
+  return result;
 };
 
 const normalizeOptionalOwnerId = (ownerId: string | null | undefined) => {
-  const normalizedOwnerId = ownerId?.trim() ?? "";
-  return normalizedOwnerId.length > 0 ? normalizedOwnerId : null;
+  return normalizeOptionalText(ownerId);
 };
 
 const resolveTextWithFallback = ({
@@ -348,19 +336,6 @@ const normalizeRequiredText = ({
   }
 
   return normalizedValue;
-};
-
-const hasValidImageUrl = (value: string) => {
-  if (value.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    const parsedUrl = new URL(value);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
-  } catch {
-    return false;
-  }
 };
 
 const resolveUniqueBarbershopFieldValue = async ({
@@ -423,7 +398,7 @@ const resolvePlanConfig = ({
     whatsappProvider ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.whatsappProvider;
   const normalizedWhatsappEnabled =
     whatsappEnabled ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.whatsappEnabled;
-  const normalizedWhatsappFrom = normalizeOptionalValue(whatsappFrom);
+  const normalizedWhatsappFrom = normalizeOptionalText(whatsappFrom);
 
   if (normalizedPlan === "BASIC") {
     return {
@@ -726,10 +701,10 @@ export const adminCreateBarbershop = async ({
       allowEmpty: true,
       fallbackWhenMissing: ADMIN_CREATE_BARBERSHOP_DEFAULTS.phones,
     }) ?? [...ADMIN_CREATE_BARBERSHOP_DEFAULTS.phones];
-  const normalizedImageUrl = normalizeOptionalValue(
+  const normalizedImageUrl = normalizeOptionalText(
     imageUrl ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.imageUrl,
   );
-  const normalizedLogoUrl = normalizeOptionalValue(
+  const normalizedLogoUrl = normalizeOptionalText(
     logoUrl ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.logoUrl,
   );
   const normalizedExclusiveBarber =
@@ -737,7 +712,7 @@ export const adminCreateBarbershop = async ({
   const normalizedStripeEnabled =
     stripeEnabled ?? ADMIN_CREATE_BARBERSHOP_DEFAULTS.stripeEnabled;
 
-  if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
+  if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
     throw new AdminBarbershopError({
       message: "A imagem da barbearia é inválida.",
       code: "VALIDATION",
@@ -745,7 +720,7 @@ export const adminCreateBarbershop = async ({
     });
   }
 
-  if (normalizedLogoUrl && !hasValidImageUrl(normalizedLogoUrl)) {
+  if (normalizedLogoUrl && !isValidImageUrl(normalizedLogoUrl)) {
     throw new AdminBarbershopError({
       message: "A logo da barbearia é inválida.",
       code: "VALIDATION",
@@ -926,9 +901,9 @@ export const adminUpdateBarbershop = async ({
     min: 10,
     max: 1000,
   });
-  const normalizedPhones = normalizePhones(phones);
-  const normalizedImageUrl = normalizeOptionalValue(imageUrl);
-  const normalizedLogoUrl = normalizeOptionalValue(logoUrl);
+  const normalizedPhones = normalizePhonesWithValidation(phones);
+  const normalizedImageUrl = normalizeOptionalText(imageUrl);
+  const normalizedLogoUrl = normalizeOptionalText(logoUrl);
 
   if (!normalizedBarbershopId || !normalizedPhones) {
     throw new AdminBarbershopError({
@@ -938,7 +913,7 @@ export const adminUpdateBarbershop = async ({
     });
   }
 
-  if (normalizedImageUrl && !hasValidImageUrl(normalizedImageUrl)) {
+  if (normalizedImageUrl && !isValidImageUrl(normalizedImageUrl)) {
     throw new AdminBarbershopError({
       message: "A imagem da barbearia é inválida.",
       code: "VALIDATION",
@@ -946,7 +921,7 @@ export const adminUpdateBarbershop = async ({
     });
   }
 
-  if (normalizedLogoUrl && !hasValidImageUrl(normalizedLogoUrl)) {
+  if (normalizedLogoUrl && !isValidImageUrl(normalizedLogoUrl)) {
     throw new AdminBarbershopError({
       message: "A logo da barbearia é inválida.",
       code: "VALIDATION",

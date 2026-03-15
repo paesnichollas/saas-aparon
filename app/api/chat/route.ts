@@ -8,6 +8,7 @@ import { getDateAvailableTimeSlots } from "@/actions/get-date-available-time-slo
 import { listBarbersByBarbershop } from "@/data/barbers";
 import { Prisma } from "@/generated/prisma/client";
 import { parseBookingDateOnly, parseBookingDateTime } from "@/lib/booking-time";
+import { normalizeForMessageMatch } from "@/lib/string-helpers";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -67,10 +68,6 @@ const getServerErrorMessage = (serverError: unknown) => {
   }
 
   return null;
-};
-
-const normalizeForMessageMatch = (value: string) => {
-  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 };
 
 const isUnauthorizedErrorMessage = (message: string | null) => {

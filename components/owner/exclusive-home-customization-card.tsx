@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getValidationErrorMessage } from "@/lib/action-errors";
 import { useAction } from "next-safe-action/hooks";
 import { KeyboardEvent, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -32,19 +33,6 @@ type ExclusiveHomeCustomizationCardProps = {
   homePremiumDescription: string;
   homePremiumChips: string[];
   services: FeaturedServiceItem[];
-};
-
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  if (!validationErrors || typeof validationErrors !== "object") {
-    return null;
-  }
-
-  const rootErrors = (validationErrors as { _errors?: unknown })._errors;
-  if (Array.isArray(rootErrors) && typeof rootErrors[0] === "string") {
-    return rootErrors[0];
-  }
-
-  return null;
 };
 
 const normalizeChip = (value: string) => value.trim();

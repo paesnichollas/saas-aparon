@@ -1,12 +1,6 @@
 import { getBarbershopMonthlySummary } from "@/data/reports";
-import {
-  calculateAverageTicket,
-  parseReportYear,
-  resolveReportBarbershopIdForRole,
-} from "@/data/reports-shared";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
+import { calculateAverageTicket } from "@/data/reports-shared";
+import { resolveReportRouteContext } from "@/lib/reports-route-helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -22,19 +16,6 @@ const querySchema = z.object({
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      { status: 401 },
-    );
-  }
-
   const requestUrl = new URL(request.url);
   const parsedQuery = querySchema.safeParse({
     year: requestUrl.searchParams.get("year") ?? undefined,
@@ -43,70 +24,21 @@ export async function GET(request: Request) {
 
   if (!parsedQuery.success) {
     return NextResponse.json(
-      {
-        error: "Parâmetros inválidos.",
-      },
+      { error: "Parâmetros inválidos." },
       { status: 400 },
     );
   }
 
-  const year = parseReportYear(parsedQuery.data.year);
-
-  if (year === null) {
-    return NextResponse.json(
-      {
-        error: "Ano inválido.",
-      },
-      { status: 400 },
-    );
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      role: true,
-    },
+  const resolved = await resolveReportRouteContext({
+    year: parsedQuery.data.year,
+    barbershopId: parsedQuery.data.barbershopId,
   });
 
-  if (!user) {
-    return NextResponse.json(
-      {
-        error: "Não autorizado.",
-      },
-      { status: 401 },
-    );
+  if (!resolved.ok) {
+    return resolved.response;
   }
 
-  if (user.role !== "OWNER" && user.role !== "ADMIN") {
-    return NextResponse.json(
-      {
-        error: "Acesso negado.",
-      },
-      { status: 403 },
-    );
-  }
-
-  const resolvedBarbershop = await resolveReportBarbershopIdForRole({
-    userId: user.id,
-    role: user.role,
-    requestedBarbershopId: parsedQuery.data.barbershopId,
-  });
-
-  if (!resolvedBarbershop.ok) {
-    return NextResponse.json(
-      {
-        error: resolvedBarbershop.error,
-      },
-      {
-        status: resolvedBarbershop.status,
-      },
-    );
-  }
-
-  const barbershopId = resolvedBarbershop.barbershopId;
+  const { barbershopId, year } = resolved.context;
 
   const months = await getBarbershopMonthlySummary({
     barbershopId,

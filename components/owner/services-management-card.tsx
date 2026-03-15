@@ -44,7 +44,7 @@ import { getDefaultServiceImageUrl } from "@/lib/default-images";
 import { formatCurrency } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Pencil, Plus, Scissors, Timer, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useMutationFeedback } from "@/hooks/use-mutation-feedback";
 import { useAction } from "next-safe-action/hooks";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -134,38 +134,6 @@ const parsePriceInCents = (value: string) => {
   return priceInCents;
 };
 
-const getValidationErrorMessage = (validationErrors: unknown) => {
-  if (!validationErrors || typeof validationErrors !== "object") {
-    return null;
-  }
-
-  const rootErrors = (validationErrors as { _errors?: unknown })._errors;
-
-  if (Array.isArray(rootErrors) && typeof rootErrors[0] === "string") {
-    return rootErrors[0];
-  }
-
-  return null;
-};
-
-const getActionErrorMessage = (
-  validationErrors: unknown,
-  serverError: unknown,
-  fallbackMessage: string,
-) => {
-  const validationErrorMessage = getValidationErrorMessage(validationErrors);
-
-  if (validationErrorMessage) {
-    return validationErrorMessage;
-  }
-
-  if (serverError) {
-    return fallbackMessage;
-  }
-
-  return null;
-};
-
 type ServiceRowProps = {
   service: ServiceListItem;
   onEdit: (service: ServiceListItem) => void;
@@ -235,7 +203,7 @@ const ServicesManagementCard = ({
   barbershopId,
   services,
 }: ServicesManagementCardProps) => {
-  const router = useRouter();
+  const { handleResult } = useMutationFeedback();
   const serviceList = useMemo(() => sortServicesByName(services), [services]);
   const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
   const [serviceInEdition, setServiceInEdition] = useState<ServiceListItem | null>(
@@ -341,28 +309,16 @@ const ServicesManagementCard = ({
         durationInMinutes: values.durationInMinutes,
       });
 
-      const updateErrorMessage = getActionErrorMessage(
-        updateResult.validationErrors,
-        updateResult.serverError,
-        "Erro ao atualizar serviço. Tente novamente.",
-      );
-
-      if (updateErrorMessage) {
-        toast.error(updateErrorMessage);
-        return;
-      }
-
-      if (!updateResult.data) {
-        toast.error("Erro ao atualizar serviço. Tente novamente.");
-        return;
-      }
-
-      setIsServiceFormOpen(false);
-      setServiceInEdition(null);
-      setServiceImageUrl(null);
-      serviceForm.reset(DEFAULT_FORM_VALUES);
-      toast.success("Serviço atualizado com sucesso.");
-      router.refresh();
+      handleResult(updateResult, {
+        fallbackMessage: "Erro ao atualizar serviço. Tente novamente.",
+        successMessage: "Serviço atualizado com sucesso.",
+        onSuccess: () => {
+          setIsServiceFormOpen(false);
+          setServiceInEdition(null);
+          setServiceImageUrl(null);
+          serviceForm.reset(DEFAULT_FORM_VALUES);
+        },
+      });
       return;
     }
 
@@ -375,28 +331,16 @@ const ServicesManagementCard = ({
       durationInMinutes: values.durationInMinutes,
     });
 
-    const createErrorMessage = getActionErrorMessage(
-      createResult.validationErrors,
-      createResult.serverError,
-      "Erro ao criar serviço. Tente novamente.",
-    );
-
-    if (createErrorMessage) {
-      toast.error(createErrorMessage);
-      return;
-    }
-
-    if (!createResult.data) {
-      toast.error("Erro ao criar serviço. Tente novamente.");
-      return;
-    }
-
-    setIsServiceFormOpen(false);
-    setServiceInEdition(null);
-    setServiceImageUrl(null);
-    serviceForm.reset(DEFAULT_FORM_VALUES);
-    toast.success("Serviço criado com sucesso.");
-    router.refresh();
+    handleResult(createResult, {
+      fallbackMessage: "Erro ao criar serviço. Tente novamente.",
+      successMessage: "Serviço criado com sucesso.",
+      onSuccess: () => {
+        setIsServiceFormOpen(false);
+        setServiceInEdition(null);
+        setServiceImageUrl(null);
+        serviceForm.reset(DEFAULT_FORM_VALUES);
+      },
+    });
   };
 
   const handleDeleteConfirm = async () => {
@@ -408,21 +352,14 @@ const ServicesManagementCard = ({
       serviceId: serviceToDelete.id,
     });
 
-    const deleteErrorMessage = getActionErrorMessage(
-      deleteResult.validationErrors,
-      deleteResult.serverError,
-      "Erro ao remover serviço. Tente novamente.",
-    );
-
-    if (deleteErrorMessage) {
-      toast.error(deleteErrorMessage);
-      return;
-    }
-
-    setIsDeleteDialogOpen(false);
-    setServiceToDelete(null);
-    toast.success("Serviço removido com sucesso.");
-    router.refresh();
+    handleResult(deleteResult, {
+      fallbackMessage: "Erro ao remover serviço. Tente novamente.",
+      successMessage: "Serviço removido com sucesso.",
+      onSuccess: () => {
+        setIsDeleteDialogOpen(false);
+        setServiceToDelete(null);
+      },
+    });
   };
 
   return (
