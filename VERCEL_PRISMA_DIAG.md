@@ -3,6 +3,7 @@
 ## Update 2026-02-18 - Prompt 51 Applied
 
 ### Runtime compatibility status (after changes)
+
 - No `runtime = "edge"` was found in Prisma/Auth DB-backed routes.
 - Added explicit `export const runtime = "nodejs"` in:
   - `app/api/auth/[...all]/route.ts`
@@ -12,6 +13,7 @@
 - Result: all known DB-backed API handlers are now explicitly locked to Node.js runtime.
 
 ### Prisma client hardening
+
 - Updated `lib/prisma.ts` to:
   - use `globalThis` singleton cache in development (`prisma?: PrismaClient`);
   - instantiate through a single `createPrismaClient()` factory;
@@ -19,6 +21,7 @@
 - Result: safer initialization path for serverless and local HMR, avoiding accidental multi-client creation patterns.
 
 ### Query tuning highlights
+
 - `app/api/chat/route.ts`
   - replaced deep `include` payload with strict `select`;
   - added deterministic ordering and limit (`take: 20`) to barbershop search.
@@ -31,6 +34,7 @@
   - replaced yearly row fetch with monthly aggregate queries to avoid loading full booking rows in memory.
 
 ### Indexes added with code evidence
+
 - `prisma/schema.prisma` (`Booking` model):
   - `@@index([barbershopId, date, cancelledAt])`
   - `@@index([barbershopId, paymentStatus, createdAt])`
@@ -44,6 +48,7 @@
 ## 1) Runtime atual (Node vs Edge)
 
 ### Resultado da busca obrigatoria
+
 - Nao foi encontrado `runtime = "edge"` no repositorio.
 - Foram encontrados varios handlers com `export const runtime = "nodejs"`:
   - `app/api/admin/barbershops/[id]/plan/route.ts:28`
@@ -60,6 +65,7 @@
   - `app/api/users/me/phone/start-verification/route.ts:23`
 
 ### Rotas sem `runtime` explicito
+
 - `app/api/auth/[...all]/route.ts`
 - `app/api/bookings/route.ts`
 - `app/api/chat/route.ts`
@@ -70,6 +76,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 ## 2) Onde Prisma e usado
 
 ### Instanciacao do PrismaClient
+
 - Arquivo: `lib/prisma.ts`
   - `PrismaClient` vem de `@/generated/prisma/client` (`lib/prisma.ts:3`).
   - Usa `PrismaPg` adapter com `DATABASE_URL` (`lib/prisma.ts:4`, `lib/prisma.ts:6`, `lib/prisma.ts:8`).
@@ -78,11 +85,13 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
     - Apenas em desenvolvimento salva em `globalThis` (`NODE_ENV !== "production"`).
 
 ### Auth tambem depende de Prisma
+
 - Arquivo: `lib/auth.ts`
   - `better-auth` configurado com `prismaAdapter(prisma, { provider: "postgresql" })` (`lib/auth.ts:47-50`).
   - Isso implica acesso ao banco em fluxo de sessao/auth.
 
 ### Camadas com uso de Prisma
+
 - `data/*`:
   - `data/barbershops.ts`
   - `data/barbers.ts`
@@ -146,6 +155,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 ## 3) Variaveis de ambiente relacionadas a DB
 
 ### Encontradas no codigo
+
 - `DATABASE_URL`:
   - `lib/prisma.ts:6`
   - `prisma.config.ts:13`
@@ -153,9 +163,11 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
   - `prisma/backfill-public-slugs.ts:7`
 
 ### Encontradas em template de ambiente
+
 - `.env.example:1` -> `DATABASE_URL=""`
 
 ### Nao encontradas na base
+
 - `DIRECT_URL`
 - `POSTGRES_URL`
 - `POSTGRES_PRISMA_URL`
@@ -163,6 +175,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 ## 4) Lista de rotas/server actions que acessam DB
 
 ### Rotas (API)
+
 - `app/api/admin/barbershops/[id]/plan/route.ts` (direto)
 - `app/api/auth/[...all]/route.ts` (indireto via Better Auth + Prisma adapter)
 - `app/api/auth/phone/route.ts` (direto)
@@ -180,6 +193,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 - `app/api/users/me/phone/start-verification/route.ts` (direto)
 
 ### Server Actions
+
 - `actions/admin-disable-barbershop-access.ts`
 - `actions/admin-enable-barbershop-access.ts`
 - `actions/admin-promote-to-owner-and-assign-barbershop.ts`
@@ -209,6 +223,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
 ## 5) Riscos detectados (Vercel + Prisma) e recomendacoes
 
 ### Risco A: incompatibilidade Edge x Prisma
+
 - Estado atual: nao ha `runtime = "edge"` no repo.
 - Risco: se alguma rota DB-backed migrar para Edge no futuro, o acesso Prisma/adapter pode quebrar.
 - Recomendacao:
@@ -216,6 +231,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
   - adicionar check em review/CI para bloquear `runtime = "edge"` em arquivos que importam Prisma.
 
 ### Risco B: excesso de conexoes em ambiente serverless
+
 - Observacao:
   - a app usa somente `DATABASE_URL`;
   - nao ha `DIRECT_URL` nem indicio de split pool/non-pool;
@@ -227,6 +243,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
   - monitorar ativamente total de conexoes vs concorrencia de funcoes.
 
 ### Risco C: cold start e latencia inicial
+
 - Observacao:
   - Prisma e adapter sao inicializados por instancia de funcao;
   - endpoints de alto volume (auth, bookings, chat, webhook, relatorios) podem sofrer mais em cold starts.
@@ -236,6 +253,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
   - reduzir fan-out de consultas em endpoints criticos quando possivel.
 
 ### Risco D: jobs/rotas com carga transacional
+
 - Observacao:
   - ha uso de transacoes e processamento em lote, por exemplo:
     - `app/api/internal/notifications/dispatch/route.ts`
@@ -248,7 +266,7 @@ Inferencia: essas rotas sem export explicito ficam no runtime padrao do Next.js 
   - acompanhar lock/contention em horarios de pico.
 
 ## Conclusao rapida
+
 - Hoje: runtime efetivo orientado a Node, sem Edge explicito.
 - Prisma: centralizado em `lib/prisma.ts`, amplamente usado em data/actions/routes/auth.
 - Principal risco operacional em Vercel: conexoes (pool/concurrency), seguido de cold start em rotas de maior trafego.
-
